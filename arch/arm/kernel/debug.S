@@ -11,6 +11,7 @@
  */
 #include <linux/linkage.h>
 #include <asm/assembler.h>
+#include "../mach-tegra/iomap.h"
 
 		.text
 
