@@ -224,3 +224,15 @@ tegra_uart_config:
 	/* Debug UART virtual address */
 	.word 0
 #endif
+
+// Macro to enable bitbang serial port on MMU enable
+// (Otherwise you'd have to wait for mmu_init in start_kernel)
+	.macro  addruart_bitbang, rp, rv
+	ldr     \rp, =IO_PPSB_PHYS       @ physical
+	ldr     \rv, =IO_PPSB_VIRT        @ virtual
+	orr	\rp, \rp, #(TEGRA_GPIO_BASE & 0xFF)
+	orr	\rp, \rp, #(TEGRA_GPIO_BASE & 0xFF00)
+	orr	\rv, \rv, #(TEGRA_GPIO_BASE & 0xFF)
+	orr	\rv, \rv, #(TEGRA_GPIO_BASE & 0xFF00)
+	.endm
+
