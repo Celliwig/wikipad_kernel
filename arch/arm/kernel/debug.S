@@ -85,7 +85,7 @@ hexbuf_rel:	.long	hexbuf_addr - .
 #ifndef CONFIG_DEBUG_SEMIHOSTING
 
 ENTRY(printascii)
-		addruart_current r3, r1, r2
+//		addruart_current r3, r1, r2
 1:		teq	r0, #0
 		ldrneb	r1, [r0], #1
 		teqne	r1, #0

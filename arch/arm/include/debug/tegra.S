@@ -45,6 +45,9 @@
 #define TEGRA_PMC_SCRATCH20		(TEGRA_PMC_BASE + 0xa0)
 #define TEGRA_APB_MISC_GP_HIDREV	(TEGRA_APB_MISC_BASE + 0x804)
 
+#define IO_PPSB_PHYS			0x60000000
+#define IO_PPSB_VIRT			IOMEM(0xFE200000)
+#define TEGRA_GPIO_BASE			0x6000D000
 /*
  * Must be section-aligned since a section mapping is used early on.
  * Must not overlap with regions in mach-tegra/io.c:tegra_io_desc[].
@@ -227,7 +230,7 @@ tegra_uart_config:
 
 // Macro to enable bitbang serial port on MMU enable
 // (Otherwise you'd have to wait for mmu_init in start_kernel)
-	.macro  addruart_bitbang, rp, rv
+	.macro  addruart_bitbang, rp, rv, tmp
 	ldr     \rp, =IO_PPSB_PHYS       @ physical
 	ldr     \rv, =IO_PPSB_VIRT        @ virtual
 	orr	\rp, \rp, #(TEGRA_GPIO_BASE & 0xFF)
