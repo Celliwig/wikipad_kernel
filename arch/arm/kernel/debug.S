@@ -93,18 +93,25 @@ ENTRY(printascii)
 2:		teq     r1, #'\n'
 		bne	3f
 		mov	r1, #'\r'
-		waituart r2, r3
-		senduart r1, r3
-		busyuart r2, r3
+//		waituart r2, r3
+//		senduart r1, r3
+//		busyuart r2, r3
+		stmfd	sp!, {lr}						// Save lr
+		bl	dbg_serial_bitbang_char
+		ldmfd	sp!, {lr}						// Restore lr
 		mov	r1, #'\n'
-3:		waituart r2, r3
-		senduart r1, r3
-		busyuart r2, r3
+3:
+//		waituart r2, r3
+//		senduart r1, r3
+//		busyuart r2, r3
+		stmfd	sp!, {lr}						// Save lr
+		bl	dbg_serial_bitbang_char
+		ldmfd	sp!, {lr}						// Restore lr
 		b	1b
 ENDPROC(printascii)
 
 ENTRY(printch)
-		addruart_current r3, r1, r2
+//		addruart_current r3, r1, r2
 		mov	r1, r0
 		mov	r0, #0
 		b	2b
@@ -178,71 +185,162 @@ ENDPROC(debug_ll_addr)
 #define		DBG_GPIO_PORT_W			0x508
 #define		DBG_GPIO_PORT_W_LCD_VDDS	(1<<1)
 
-#define	DBG_CLK_RESET_BASE			0x60006000
+#define		DBG_CLK_RESET_BASE			0x60006000
 //#define	DBG_CLK_RESET_OFFSET			0x6000
 //#define	DBG_CLK_RESET_BASE			(IO_PPSB_PHYS+DBG_CLK_RESET_OFFSET)
 //#define	DBG_CLK_RESET_BASE			(IO_PPSB_VIRT+DBG_CLK_RESET_OFFSET)
-#define	DBG_RST_DEVICES_H_OFFSET		0x08
-#define	DBG_SWR_I2C2_RST			(1<<22)
-#define	DBG_RST_DEVICES_U_OFFSET		0x0c
-#define	DBG_SWR_UART4_RST			(1<<1)
+#define		DBG_RST_DEVICES_H_OFFSET		0x08
+#define		DBG_SWR_I2C2_RST			(1<<22)
+#define		DBG_RST_DEVICES_U_OFFSET		0x0c
+#define		DBG_SWR_UART4_RST			(1<<1)
 
-#define	DBG_CLK_OUT_ENB_H_OFFSET		0x14
-#define	DBG_CLK_ENB_I2C2			(1<<22)
-#define	DBG_CLK_OUT_ENB_U_OFFSET		0x18
-#define	DBG_CLK_ENB_UART4			(1<<1)
+#define		DBG_CLK_OUT_ENB_H_OFFSET		0x14
+#define		DBG_CLK_ENB_I2C2			(1<<22)
+#define		DBG_CLK_OUT_ENB_U_OFFSET		0x18
+#define		DBG_CLK_ENB_UART4			(1<<1)
 
-#define	DBG_CLK_RST_CONTROLLER_CLK_SOURCE_I2C2_0	0x198
-#define	DBG_CLK_RST_CONTROLLER_CLK_SOURCE_UARTD_0	0x1c0
+#define		DBG_CLK_RST_CONTROLLER_CLK_SOURCE_I2C2_0	0x198
+#define		DBG_CLK_RST_CONTROLLER_CLK_SOURCE_UARTD_0	0x1c0
 
-#define DBG_ADDR_PBASE				0x70000000
-//#define DBG_ADDR_PBASE				IO_APB_PHYS
-//#define DBG_ADDR_VBASE				IO_APB_VIRT
+#define 	DBG_ADDR_PBASE				0x70000000
+//#define 	DBG_ADDR_PBASE				IO_APB_PHYS
+//#define 	DBG_ADDR_VBASE				IO_APB_VIRT
 
-#define	DBG_PINMUX_PINMUX			(3<<0)
-#define	DBG_PINMUX_PUPD				(3<<2)
-#define	DBG_PINMUX_TRISTATE			(1<<4)
-#define	DBG_PINMUX_EINPUT			(1<<5)
+#define		DBG_PINMUX_PINMUX			(3<<0)
+#define		DBG_PINMUX_PUPD				(3<<2)
+#define		DBG_PINMUX_TRISTATE			(1<<4)
+#define		DBG_PINMUX_EINPUT			(1<<5)
+#define		DBG_PINMUX_BASE				0x70003000
 //#define	DBG_PINMUX_GEN2_I2C_SCL			0x3250
 //#define	DBG_PINMUX_GEN2_I2C_SDA			0x3254
-//#define DBG_PINMUX_GMI_A16			0x3230			// UARTD TX
+//#define 	DBG_PINMUX_GMI_A16			0x3230			// UARTD TX
 //#define	DBG_PINMUX_GMI_A17			0x3234			// UARTD RX
 //#define	DBG_PINMUX_GMI_A19			0x323c			// TS reset
-#define DBG_PINMUX_GMI_A18			0x70003238		// Speaker enable
-#define	DBG_PINMUX_GMI_A19			0x7000323c		// TS reset
-#define	DBG_PINMUX_GEN2_I2C_SCL			0x70003250
-#define	DBG_PINMUX_GEN2_I2C_SDA			0x70003254
+#define 	DBG_PINMUX_GMI_A18			0x70003238		// Speaker enable
+#define		DBG_PINMUX_GMI_A19			0x7000323c		// TS reset
+#define		DBG_PINMUX_GEN2_I2C_SCL			0x70003250
+#define		DBG_PINMUX_GEN2_I2C_SDA			0x70003254
+
+// Prints platform configuration
+ENTRY(dbg_print_config)
+		stmfd   sp!, {r0 - r7, lr}
+		mov	r0, #'\n'
+		bl	printch
+		mov	r0, #'\n'
+		bl	printch
+		bl	dbg_print_car
+		mov	r0, #'\n'
+		bl	printch
+		bl	dbg_print_pinmux
+		mov	r0, #'\n'
+		bl	printch
+		bl	dbg_print_gpio
+		ldmfd   sp!, {r0 - r7, pc}
+dbg_print_config_loop:
+		b	dbg_print_config_loop
+ENDPROC(dbg_print_config)
+
+// Print GPIO config registers
+ENTRY(dbg_print_gpio)
+		stmfd   sp!, {r0 - r7, lr}
+		adr	r0, str_gpio1
+		bl	printascii
+		ldr	r6, =DBG_GPIO_BASE_ADDR
+		ldr	r7, =(DBG_GPIO_BASE_ADDR+0x800)
+dbg_print_gpio_loop:
+		mov	r4, r6
+		bl	dbg_print_memloc
+		add	r6, #4
+		cmp	r6, r7
+		ble	dbg_print_gpio_loop
+		ldmfd   sp!, {r0 - r7, pc}
+ENDPROC(dbg_print_gpio)
+str_gpio1:	.asciz	"Print GPIO registers.\n"
+
+// Print PinMux config registers
+ENTRY(dbg_print_pinmux)
+		stmfd   sp!, {r0 - r7, lr}
+		adr	r0, str_pinmux1
+		bl	printascii
+		ldr	r6, =DBG_PINMUX_BASE
+		ldr	r7, =(DBG_PINMUX_BASE+0x3e0)
+dbg_print_pinmux_loop:
+		mov	r4, r6
+		bl	dbg_print_memloc
+		add	r6, #4
+		cmp	r6, r7
+		ble	dbg_print_pinmux_loop
+		ldmfd   sp!, {r0 - r7, pc}
+ENDPROC(dbg_print_pinmux)
+str_pinmux1:	.asciz	"Print PINMUX registers.\n"
+
+// Print Clock And Reset config registers
+ENTRY(dbg_print_car)
+		stmfd   sp!, {r0 - r7, lr}
+		adr	r0, str_car1
+		bl	printascii
+		ldr	r6, =DBG_CLK_RESET_BASE
+		ldr	r7, =(DBG_CLK_RESET_BASE+0x18)
+dbg_print_car_loop:
+		mov	r4, r6
+		bl	dbg_print_memloc
+		add	r6, #4
+		cmp	r6, r7
+		ble	dbg_print_car_loop
+		ldmfd   sp!, {r0 - r7, pc}
+ENDPROC(dbg_print_car)
+str_car1:	.asciz	"Print CAR registers.\n"
+
+// Read a memory location and print it
+// r4 - memory loction to read
+ENTRY(dbg_print_memloc)
+		stmfd   sp!, {r0 - r6, lr}
+		mov	r0, #'\t'
+		bl	printch
+		ldr	r5, [r4]
+		mov	r0, r4
+		bl	printhex8
+		mov	r0, #':'
+		bl	printch
+		mov	r0, #' '
+		bl	printch
+		mov	r0, r5
+		bl	printhex8
+		mov	r0, #'\n'
+		bl	printch
+		ldmfd   sp!, {r0 - r6, pc}
+ENDPROC(dbg_print_memloc)
 
 // Prints 'hello world' to bitbang serial interface
 ENTRY(dbg_serial_bitbang_hw)
-	mov	r1, #'H'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'e'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'l'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'l'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'o'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #' '
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'W'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'o'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'r'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'l'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'d'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'\n'
-	bl	dbg_serial_bitbang_char
-	mov	r1, #'\r'
-	bl	dbg_serial_bitbang_char
+		mov	r1, #'H'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'e'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'l'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'l'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'o'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #' '
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'W'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'o'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'r'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'l'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'d'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'\n'
+		bl	dbg_serial_bitbang_char
+		mov	r1, #'\r'
+		bl	dbg_serial_bitbang_char
 
-	b	dbg_serial_bitbang_hw
+		b	dbg_serial_bitbang_hw
 ENDPROC(dbg_serial_bitbang_hw)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
