@@ -184,16 +184,20 @@ ENDPROC(debug_ll_addr)
 #define		DBG_GPIO_PORT_J 		0x204
 #define		DBG_GPIO_PORT_W			0x508
 #define		DBG_GPIO_PORT_W_LCD_VDDS	(1<<1)
+#define		DBG_GPIO_PORT_Y			0x600
+#define		DBG_GPIO_PORT_Y_SDMMC1_DAT1	(1<<6)
 
 #define		DBG_CLK_RESET_BASE			0x60006000
 //#define	DBG_CLK_RESET_OFFSET			0x6000
 //#define	DBG_CLK_RESET_BASE			(IO_PPSB_PHYS+DBG_CLK_RESET_OFFSET)
 //#define	DBG_CLK_RESET_BASE			(IO_PPSB_VIRT+DBG_CLK_RESET_OFFSET)
+#define		DBG_RST_DEVICES_L_OFFSET		0x04
 #define		DBG_RST_DEVICES_H_OFFSET		0x08
 #define		DBG_SWR_I2C2_RST			(1<<22)
 #define		DBG_RST_DEVICES_U_OFFSET		0x0c
 #define		DBG_SWR_UART4_RST			(1<<1)
 
+#define		DBG_CLK_OUT_ENB_L_OFFSET		0x10
 #define		DBG_CLK_OUT_ENB_H_OFFSET		0x14
 #define		DBG_CLK_ENB_I2C2			(1<<22)
 #define		DBG_CLK_OUT_ENB_U_OFFSET		0x18
@@ -211,11 +215,7 @@ ENDPROC(debug_ll_addr)
 #define		DBG_PINMUX_TRISTATE			(1<<4)
 #define		DBG_PINMUX_EINPUT			(1<<5)
 #define		DBG_PINMUX_BASE				0x70003000
-//#define	DBG_PINMUX_GEN2_I2C_SCL			0x3250
-//#define	DBG_PINMUX_GEN2_I2C_SDA			0x3254
-//#define 	DBG_PINMUX_GMI_A16			0x3230			// UARTD TX
-//#define	DBG_PINMUX_GMI_A17			0x3234			// UARTD RX
-//#define	DBG_PINMUX_GMI_A19			0x323c			// TS reset
+#define 	DBG_PINMUX_SDMMC1_DAT1			0x70003058		// SDMMC1 DAT1
 #define 	DBG_PINMUX_GMI_A18			0x70003238		// Speaker enable
 #define		DBG_PINMUX_GMI_A19			0x7000323c		// TS reset
 #define		DBG_PINMUX_GEN2_I2C_SCL			0x70003250
@@ -279,6 +279,7 @@ ENTRY(dbg_print_car)
 		stmfd   sp!, {r0 - r7, lr}
 		adr	r0, str_car1
 		bl	printascii
+// Basic registers
 		ldr	r6, =DBG_CLK_RESET_BASE
 		ldr	r7, =(DBG_CLK_RESET_BASE+0x18)
 dbg_print_car_loop:
@@ -287,9 +288,27 @@ dbg_print_car_loop:
 		add	r6, #4
 		cmp	r6, r7
 		ble	dbg_print_car_loop
+// PLLP registers
+		adr	r0, str_car2
+		bl	printascii
+		ldr	r4, =(DBG_CLK_RESET_BASE+0xa0)
+		bl	dbg_print_memloc
+		ldr	r4, =(DBG_CLK_RESET_BASE+0xa4)
+		bl	dbg_print_memloc
+		ldr	r4, =(DBG_CLK_RESET_BASE+0xa8)
+		bl	dbg_print_memloc
+		ldr	r4, =(DBG_CLK_RESET_BASE+0xac)
+		bl	dbg_print_memloc
+// Other registers
+		adr	r0, str_car3
+		bl	printascii
+		ldr	r4, =(DBG_CLK_RESET_BASE+0x178)
+		bl	dbg_print_memloc
 		ldmfd   sp!, {r0 - r7, pc}
 ENDPROC(dbg_print_car)
 str_car1:	.asciz	"Print CAR registers.\n"
+str_car2:	.asciz	"Print PLLP registers.\n"
+str_car3:	.asciz	"Other registers.\n"
 
 // Read a memory location and print it
 // r4 - memory loction to read
@@ -348,34 +367,45 @@ ENDPROC(dbg_serial_bitbang_hw)
 // Bit-bang serial interface
 // https://www.seetron.com/apps/app_serial_coms.html
 
+#define	DBG_BITBANG_PINMUX	DBG_PINMUX_GMI_A19
+#define	DBG_BITBANG_PORT	DBG_GPIO_PORT_K
+#define	DBG_BITBANG_PIN		DBG_GPIO_PORT_K_TS_RST
+//#define	DBG_BITBANG_PINMUX	DBG_PINMUX_SDMMC1_DAT1
+//#define	DBG_BITBANG_PORT	DBG_GPIO_PORT_Y
+//#define	DBG_BITBANG_PIN		DBG_GPIO_PORT_Y_SDMMC1_DAT1
+
 ENTRY(dbg_out_setup)
 		stmfd   sp!, {r0 - r6, lr}
 
+//// Pin Mux
+//		ldr	r4, =DBG_BITBANG_PINMUX
+//		mov	r0, #0
+//		str	r0, [r4]
+//
+////		ldr	r4, =DBG_PINMUX_GMI_A19
+////		ldr	r0, [r4]
+////		bl	dbg_display_flash_number32
+////test_loop:
+////		b	test_loop
+//// DBG_PINMUX_GMI_A19 - 1 1 1 1 1 1 1 1 = 0x00000000
+
 // GPIO
 // DBG_GPIO_PORT_K - 1 1 1 1 1 1 1 3 = 0x00000002
-		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_CNF)		// Load base address
+		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_BITBANG_PORT | DBG_GPIO_PORT_CNF)	// Load base address
 		ldr	r1, [r4]								// Get current state
-		orr	r1, #DBG_GPIO_PORT_K_TS_RST						// Enable GPIO pin
+		orr	r1, #DBG_BITBANG_PIN							// Enable GPIO pin
 		str	r1, [r4]								// Save config
 
-		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OE)		// Load base address
+		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_BITBANG_PORT | DBG_GPIO_PORT_OE)		// Load base address
 		ldr	r1, [r4]								// Get current state
-		orr	r1, #DBG_GPIO_PORT_K_TS_RST						// Enable GPIO pin output
+		orr	r1, #DBG_BITBANG_PIN							// Enable GPIO pin output
 		str	r1, [r4]								// Save config
 
-//		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OE)		// Load base address
+//		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_BITBANG_PORT | DBG_GPIO_PORT_OE)		// Load base address
 //		ldr	r0, [r4]								// Get current state
 //		bl	dbg_display_flash_number32
 //test_loop:
 //		b	test_loop
-
-// Pin Mux
-//		ldr	r4, =DBG_PINMUX_GMI_A19
-//		ldr	r0, [r4]
-//		bl	dbg_display_flash_number32
-//test_loop:
-//		b	test_loop
-// DBG_PINMUX_GMI_A19 - 1 1 1 1 1 1 1 1 = 0x00000000
 
 		//bl	dbg_serial_set_baud_early
 		adr	r0, bitbang_baud_rate_count
@@ -383,10 +413,10 @@ ENTRY(dbg_out_setup)
 		str	r1, [r0]								// Clear baud rate setting
 
 		adr	r0, bitbang_gpio_addr
-		ldr	r1, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OUT)
+		ldr	r1, =(DBG_GPIO_BASE_ADDR | DBG_BITBANG_PORT | DBG_GPIO_PORT_OUT)
 		str	r1, [r0]
 
-		bl	dbg_tsreset_off								// Set line to idle
+		bl	dbg_bitbang_off								// Set line to idle
 
 		ldmfd   sp!, {r0 - r6, pc}
 ENDPROC(dbg_out_setup)
@@ -402,7 +432,7 @@ ENTRY(dbg_serial_bitbang_char)
 		cmp	r0, #0							// Check if it's set
 		beq	dbg_serial_bitbang_char_finish				// Just finish if it's not
 
-		bl	dbg_tsreset_on						// Start bit
+		bl	dbg_bitbang_on						// Start bit
 		bl	dbg_serial_bitbang_delay
 
 		mov	r2, #8							// Bit count
@@ -413,9 +443,9 @@ dbg_serial_bitbang_char_loop:
 		subs	r2, r2, #1						// Decrement counter
 		bne	dbg_serial_bitbang_char_loop				// Loop with there are remaining bits
 
-		bl	dbg_tsreset_on						// Stop bit
+		bl	dbg_bitbang_on						// Stop bit
 		bl	dbg_serial_bitbang_delay
-		bl	dbg_tsreset_off						// Return line to idle
+		bl	dbg_bitbang_off						// Return line to idle
 		bl	dbg_serial_bitbang_delay
 
 dbg_serial_bitbang_char_finish:
@@ -428,34 +458,35 @@ ENTRY(dbg_serial_bitbang)
 		stmfd   sp!, {lr}
 		tst	r1, #1							// Test lsb
 		bne	dbg_serial_bitbang_1					// Jump if bit was 1
-		bl	dbg_tsreset_on						// Set line high
+		bl	dbg_bitbang_on						// Set line high
 		ldmfd   sp!, {pc}
 dbg_serial_bitbang_1:
-		bl	dbg_tsreset_off						// Set line low
+		bl	dbg_bitbang_off						// Set line low
 		ldmfd   sp!, {pc}
 ENDPROC(dbg_serial_bitbang)
 
 // Pulse line (used to configure timing)
-ENTRY(dbg_tsreset_pulse)
-		bl	dbg_tsreset_off
+ENTRY(dbg_bitbang_pulse)
+		bl	dbg_bitbang_off
 		bl	dbg_serial_bitbang_delay
 
-		bl	dbg_tsreset_on
+		bl	dbg_bitbang_on
 		bl	dbg_serial_bitbang_delay
 
-		b	dbg_tsreset_pulse
-ENDPROC(dbg_tsreset_pulse)
+		b	dbg_bitbang_pulse
+ENDPROC(dbg_bitbang_pulse)
 
 ENTRY(dbg_serial_set_baud)
 		stmfd   sp!, {r0 - r6, lr}
 
 		adr	r0, bitbang_baud_rate_count
-		ldr	r1, =105987						// 9600
+//		ldr	r1, =53000						// 9600
+		ldr	r1, =105987						// 9600 (This did work!!!!)
 //		mov	r1, #2465						// 115200
 		str	r1, [r0]
 
 		adr	r0, bitbang_gpio_addr
-		ldr	r1, =(DBG_GPIO_BASE_VADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OUT)
+		ldr	r1, =(DBG_GPIO_BASE_VADDR | DBG_BITBANG_PORT | DBG_GPIO_PORT_OUT)
 		str	r1, [r0]
 
 		ldmfd   sp!, {r0 - r6, pc}
@@ -470,7 +501,7 @@ ENTRY(dbg_serial_set_baud_early)
 		str	r1, [r0]
 
 		adr	r0, bitbang_gpio_addr
-		ldr	r1, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OUT)
+		ldr	r1, =(DBG_GPIO_BASE_ADDR | DBG_BITBANG_PORT | DBG_GPIO_PORT_OUT)
 		str	r1, [r0]
 
 		ldmfd   sp!, {r0 - r6, pc}
@@ -495,128 +526,129 @@ bitbang_gpio_addr:		.space	4							// Store for GPIO base address
 												// Variable so can cope with change between phyiscal and virtual
 
 // Set bitbang line low
-dbg_tsreset_off:
+dbg_bitbang_off:
 		adr	r6, bitbang_gpio_addr							// Get GPIO address store
 		ldr	r6, [r6]								// Load saved address
-dbg_tsreset_off_do:
+dbg_bitbang_off_do:
 		ldrb	r5, [r6]								// Get current state
-		mvn	r4, #(DBG_GPIO_PORT_K_TS_RST)						// Set mask
+		mvn	r4, #(DBG_BITBANG_PIN)							// Set mask
 		and	r5, r4									// Mask current value
 		strb	r5, [r6]								// Write value to GPIO register
-
 		mov	pc, lr
 
 // Set bitbang line high
-dbg_tsreset_on:
+dbg_bitbang_on:
 		adr	r6, bitbang_gpio_addr							// Get GPIO address store
 		ldr	r6, [r6]								// Load saved address
-dbg_tsreset_on_do:
+dbg_bitbang_on_do:
 		ldrb	r5, [r6]								// Get current state
-		orr	r5, #(DBG_GPIO_PORT_K_TS_RST)						// Update value
+		orr	r5, #(DBG_BITBANG_PIN)							// Update value
 		strb	r5, [r6]								// Write value to GPIO register
-
 		mov	pc, lr
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // UART hookup
-
-#define DBG_UARTD_ADDR			0x70006300
-#define	DBG_UART_OFFSET_THR		0x00			// Transmitter Holding Register (Write - LSR.DLAB clear)
-#define	DBG_UART_OFFSET_RBR		0x00			// Receiver Buffer Register (Read - LSR.DLAB clear)
-#define	DBG_UART_OFFSET_DLL_LSB		0x00			// Divisor Latch LSByte Register (R/W - LSR.DLAB set)
-#define	DBG_UART_OFFSET_IER		0x04			// Interrupt Enable Register (R/W - LSR.DLAB clear)
-#define	DBG_UART_OFFSET_DLL_MSB		0x04			// Divisor Latch MSByte Register (R/W  - LSR.DLAB set)
-#define	DBG_UART_OFFSET_IIR		0x08			// Interrupt Identification Register (Read)
-#define	DBG_UART_OFFSET_FCR		0x08			// FIFO Control Register (Write)
-#define DBG_UART_OFFSET_LCR		0x0c			// Line Control Register (R/W)
-#define DBG_UART_OFFSET_MCR		0x10			// Modem Control Register (R/W)
-#define DBG_UART_OFFSET_LSR		0x14			// Line Status Register (Read)
-#define DBG_UART_OFFSET_MSR		0x18			// Modem Status Register (R/W)
-#define DBG_UART_OFFSET_SPR		0x1c			// Scratch Pad Register (R/W)
-#define	DBG_UART_OFFSET_RX_FIFO_CFG	0x24			// (R/W)
-#define	DBG_UART_OFFSET_ASR		0x3c			// Auto Sense Baud Register (R/W)
-
-#define	DBG_UART_MCR_RTS_EN		(1<<6)
-#define	DBG_UART_MCR_CTS_EN		(1<<5)
-#define	DBG_UART_MCR_LOOPBK		(1<<4)
-#define	DBG_UART_MCR_OUT2		(1<<3)
-#define	DBG_UART_MCR_OUT1		(1<<2)
-#define	DBG_UART_MCR_RTS		(1<<1)
-#define	DBG_UART_MCR_DTR		(1<<0)
-
-#define	DBG_UART_LCR_BITS_5		0
-#define	DBG_UART_LCR_BITS_6		1
-#define	DBG_UART_LCR_BITS_7		2
-#define	DBG_UART_LCR_BITS_8		3
-#define	DBG_UART_LCR_STOP_ONE		0
-#define	DBG_UART_LCR_STOP_TWO		4
-#define	DBG_UART_LCR_PARITY_NONE	0
-#define	DBG_UART_LCR_PARITY_ODD		8
-#define	DBG_UART_LCR_PARITY_MARK	20
-#define	DBG_UART_LCR_PARITY_EVEN	24
-#define	DBG_UART_LCR_PARITY_SPACE	28
-#define	DBG_UART_LCR_DLAB		128
-
-#define	DBG_UART_LSR_THRE		(1<<5)
-
+//
+//#define DBG_UARTA_ADDR			0x70006000
+//#define DBG_UARTD_ADDR			0x70006300
+//#define	DBG_UART_OFFSET_THR		0x00			// Transmitter Holding Register (Write - LSR.DLAB clear)
+//#define	DBG_UART_OFFSET_RBR		0x00			// Receiver Buffer Register (Read - LSR.DLAB clear)
+//#define	DBG_UART_OFFSET_DLL_LSB		0x00			// Divisor Latch LSByte Register (R/W - LSR.DLAB set)
+//#define	DBG_UART_OFFSET_IER		0x04			// Interrupt Enable Register (R/W - LSR.DLAB clear)
+//#define	DBG_UART_OFFSET_DLL_MSB		0x04			// Divisor Latch MSByte Register (R/W  - LSR.DLAB set)
+//#define	DBG_UART_OFFSET_IIR		0x08			// Interrupt Identification Register (Read)
+//#define	DBG_UART_OFFSET_FCR		0x08			// FIFO Control Register (Write)
+//#define DBG_UART_OFFSET_LCR		0x0c			// Line Control Register (R/W)
+//#define DBG_UART_OFFSET_MCR		0x10			// Modem Control Register (R/W)
+//#define DBG_UART_OFFSET_LSR		0x14			// Line Status Register (Read)
+//#define DBG_UART_OFFSET_MSR		0x18			// Modem Status Register (R/W)
+//#define DBG_UART_OFFSET_SPR		0x1c			// Scratch Pad Register (R/W)
+//#define	DBG_UART_OFFSET_RX_FIFO_CFG	0x24			// (R/W)
+//#define	DBG_UART_OFFSET_ASR		0x3c			// Auto Sense Baud Register (R/W)
+//
+//#define	DBG_UART_MCR_RTS_EN		(1<<6)
+//#define	DBG_UART_MCR_CTS_EN		(1<<5)
+//#define	DBG_UART_MCR_LOOPBK		(1<<4)
+//#define	DBG_UART_MCR_OUT2		(1<<3)
+//#define	DBG_UART_MCR_OUT1		(1<<2)
+//#define	DBG_UART_MCR_RTS		(1<<1)
+//#define	DBG_UART_MCR_DTR		(1<<0)
+//
+//#define	DBG_UART_LCR_BITS_5		0
+//#define	DBG_UART_LCR_BITS_6		1
+//#define	DBG_UART_LCR_BITS_7		2
+//#define	DBG_UART_LCR_BITS_8		3
+//#define	DBG_UART_LCR_STOP_ONE		0
+//#define	DBG_UART_LCR_STOP_TWO		4
+//#define	DBG_UART_LCR_PARITY_NONE	0
+//#define	DBG_UART_LCR_PARITY_ODD		8
+//#define	DBG_UART_LCR_PARITY_MARK	20
+//#define	DBG_UART_LCR_PARITY_EVEN	24
+//#define	DBG_UART_LCR_PARITY_SPACE	28
+//#define	DBG_UART_LCR_DLAB		128
+//
+//#define	DBG_UART_LSR_THRE		(1<<5)
+//
+//#define		DBG_PINMUX_SDMMC1_CLK			0x70003048
+//#define		DBG_PINMUX_SDMMC1_CMD			0x7000304c
+//#define		DBG_PINMUX_SDMMC1_DAT3			0x70003050
+//#define		DBG_PINMUX_SDMMC1_DAT2			0x70003054
+//#define		DBG_PINMUX_SDMMC1_DAT1			0x70003058
+//#define		DBG_PINMUX_SDMMC1_DAT0			0x7000305c
+//
+//#define		DBG_SWR_UART1_RST			(1<<6)
+//#define		DBG_CLK_ENB_UART1			(1<<6)
+//
 //ENTRY(dbg_uart_setup)
 //		stmfd   sp!, {r0 - r6, lr}
 //
-////// Pin Mux
-////		ldr	r4, =DBG_PINMUX_GMI_A18
-////		ldr	r0, [r4]
-////		bl	dbg_display_flash_number32
-////test_looppm:
-////		b	test_looppm
-//// DBG_PINMUX_GMI_A18 - 1 1 1 1 1 1 3 1 = 0x00000020
+//// Pin Mux
+//		ldr	r4, =DBG_PINMUX_SDMMC1_CLK
+//		mov	r1, #3							// Select UARTA, Pullup/down disabled, output enabled, input disabled
+//		str	r1, [r4]
+//		str	r1, [r4, #0x04]						// DBG_PINMUX_SDMMC1_DAT2
+//		str	r1, [r4, #0x08]						// DBG_PINMUX_SDMMC1_DAT1
+//		str	r1, [r4, #0x0c]						// DBG_PINMUX_SDMMC1_DAT0
+//		str	r1, [r4, #0x10]						// DBG_PINMUX_SDMMC1_DAT0
+//		str	r1, [r4, #0x14]						// DBG_PINMUX_SDMMC1_DAT0
 //
-//// GPIO
-////		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_CNF)		// Load base address
-////		ldr	r1, [r4]								// Get current state
-////		orr	r1, #DBG_GPIO_PORT_K_TS_RST						// Enable GPIO pin
-////		str	r1, [r4]								// Save config
-////
-////		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OE)		// Load base address
-////		ldr	r1, [r4]								// Get current state
-////		orr	r1, #DBG_GPIO_PORT_K_TS_RST						// Enable GPIO pin output
-////		str	r1, [r4]								// Save config
-
-////		ldr	r4, =(DBG_GPIO_BASE_ADDR | DBG_GPIO_PORT_K | DBG_GPIO_PORT_OE)		// Load base address
-////		ldr	r0, [r4]								// Get current state
-////		bl	dbg_display_flash_number32
-////test_loop:
-////		b	test_loop
-
+//// GPIO										// Already configured
+//
 //// CAR
-////		ldr	r4, =(DBG_CLK_RESET_BASE + DBG_CLK_RST_CONTROLLER_CLK_SOURCE_UARTD_0)
-////		ldr	r0, [r4]
-////		bl	dbg_display_flash_number32
-////test_loop:
-////		b	test_loop
-//// 1 1 1 1 1 1 1 1 = 0x00000000
-
-////		ldr	r4, =(DBG_CLK_RESET_BASE + DBG_CLK_OUT_ENB_U_OFFSET)
-////		ldr	r0, [r4]
-////		bl	dbg_display_flash_number32
-////test_loop:
-////		b	test_loop
-//// 1 4 16 1 1 11 1 3 = 0x03f00a02
-
-////		ldr	r4, =(DBG_CLK_RESET_BASE + DBG_RST_DEVICES_U_OFFSET)
-////		ldr	r0, [r4]
-////		bl	dbg_display_flash_number32
-////test_loop:
-////		b	test_loop
-//// 16 16 16 9 7 1 1 1 = 0xfff86000
-
-//		ldr	r4, =DBG_UARTD_ADDR					// UART base address
+//// First reset UARTA
+//		ldr	r4, =DBG_CLK_RESET_BASE					// CAR base address
+//		ldr	r1, [r4, #DBG_RST_DEVICES_L_OFFSET]			// Get UARTA reset state
+//		orr	r1, #DBG_SWR_UART1_RST					// Set reset flag
+//		str	r1, [r4, #DBG_RST_DEVICES_L_OFFSET]			// Save config
+//
+//// Enable UARTA clock
+//		ldr	r4, =DBG_CLK_RESET_BASE					// CAR base address
+//		ldr	r1, [r4, #DBG_CLK_OUT_ENB_L_OFFSET]			// Get UARTA clock state
+//		orr	r1, #DBG_CLK_ENB_UART1					// Set clock flag
+//		str	r1, [r4, #DBG_CLK_OUT_ENB_L_OFFSET]			// Save config
+//
+//// Wait for reset to propagate
+//		mov	r0, #1
+//		bl	dbg_delay_ms
+//
+//// Release UARTA reset
+//		ldr	r4, =DBG_CLK_RESET_BASE					// CAR base address
+//		ldr	r1, [r4, #DBG_RST_DEVICES_L_OFFSET]			// Get UARTA reset state
+//		mvn	r2, #DBG_SWR_UART1_RST					// Create mask to disable reset
+//		and	r1, r2							// Apply mask
+//		str	r1, [r4, #DBG_RST_DEVICES_L_OFFSET]			// Save config
+//
+//// Config UART
+//		ldr	r4, =DBG_UARTA_ADDR					// UART base address
 //		ldr	r0, [r4, #DBG_UART_OFFSET_MCR]				// Get current MCR state
 //		mvn	r1, #(DBG_UART_MCR_RTS_EN | DBG_UART_MCR_CTS_EN)	// Create mask
 //		and	r0, r1							// Disable hardware flow control
+//		orr	r0, #(DBG_UART_MCR_RTS | DBG_UART_MCR_DTR)		// Enable lines as flow control disabled
 //		str	r0, [r4, #DBG_UART_OFFSET_MCR]				// Set MCR
 //
-//		mov	r0, #DBG_UART_LCR_DLAB
+//		ldr	r0, [r4, #DBG_UART_OFFSET_LCR]				// Get current LCR state
+//		orr	r0, #DBG_UART_LCR_DLAB
 //		str	r0, [r4, #DBG_UART_OFFSET_LCR]				// Set DLAB bit to set baud
 //
 //		mov	r0, #0
@@ -627,32 +659,68 @@ dbg_tsreset_on_do:
 //		mov	r0, #(DBG_UART_LCR_BITS_8 | DBG_UART_LCR_PARITY_NONE | DBG_UART_LCR_STOP_ONE)
 //		str	r0, [r4, #DBG_UART_OFFSET_LCR]				// Set serial config 8 bits, no parity, 1 stop bit
 //
-//		ldr	r0, [r4, #DBG_UART_OFFSET_FCR]				// Get current FCM state
-//		mvn	r1, #1							// Create mask
-//		and	r0, r1							// Clear FCR_EN_FIFO
+////		ldr	r0, [r4, #DBG_UART_OFFSET_FCR]				// Get current FCM state
+////		mvn	r1, #1							// Create mask
+////		and	r0, r1							// Clear FCR_EN_FIFO
+//		mov	r0, #0
 //		str	r0, [r4, #DBG_UART_OFFSET_FCR]
 //
 //		mov	r0, #0
 //		str	r0, [r4, #DBG_UART_OFFSET_IER]				// Disable all interrupts
 //
-//test_loop:
-//		bl	dbg_display_flash
-//
-//		ldr	r4, =DBG_UARTD_ADDR					// UART base address
-//		mov	r0, #'A'
-//		str	r0, [r4, #DBG_UART_OFFSET_THR]				// Write character
-//test_loop_test:
-//		ldr	r0, [r4, #DBG_UART_OFFSET_LSR]
-//		tst	r0, #DBG_UART_LSR_THRE					// See if transmit buffer empty
-//		bne	test_loop
-//		b	test_loop_test
-//
-//test_loopa:
-//		b	test_loopa
+////		ldr	r4, =DBG_UARTA_ADDR					// UART base address
+////send_loop:
+////		mov	r0, #'A'
+////		bl	printch
+////		mov	r0, #'A'
+////		str	r0, [r4, #DBG_UART_OFFSET_THR]				// Write character
+////send_loop_test:
+////		ldr	r0, [r4, #DBG_UART_OFFSET_LSR]
+////		tst	r0, #DBG_UART_LSR_THRE					// See if transmit buffer empty
+////		bne	send_loop
+////		b	send_loop_test
 //
 //		ldmfd   sp!, {r0 - r6, pc}
 //ENDPROC(dbg_uart_setup)
-
+//
+//// Print UART registers
+//ENTRY(dbg_print_uart_reg)
+//		stmfd   sp!, {r0 - r7, lr}
+//		adr	r0, str_uart1
+//		bl	printascii
+//		adr	r0, str_uart2
+//		bl	printascii
+//		ldr	r4, =DBG_UARTA_ADDR					// UART base address
+//		ldr	r0, [r4, #DBG_UART_OFFSET_LCR]				// Get current LCR state
+//		orr	r0, #DBG_UART_LCR_DLAB
+//		str	r0, [r4, #DBG_UART_OFFSET_LCR]				// Set DLAB bit to set baud
+//		ldr	r4, =DBG_UARTA_ADDR
+//		bl	dbg_print_memloc
+//		ldr	r4, =(DBG_UARTA_ADDR+4)
+//		bl	dbg_print_memloc
+//		ldr	r4, =DBG_UARTA_ADDR					// UART base address
+//		ldr	r0, [r4, #DBG_UART_OFFSET_LCR]				// Get current LCR state
+//		mvn	r1, #DBG_UART_LCR_DLAB					// Create mask to clear DLAB
+//		and	r0, r1							// Apply mask
+//		str	r0, [r4, #DBG_UART_OFFSET_LCR]				// Set DLAB bit to set baud
+//		adr	r0, str_uart3
+//		bl	printascii
+//		ldr	r6, =DBG_UARTA_ADDR
+//		ldr	r7, =(DBG_UARTA_ADDR+0x24)
+//dbg_print_uart_reg_loop:
+//		mov	r4, r6
+//		bl	dbg_print_memloc
+//		add	r6, #4
+//		cmp	r6, r7
+//		ble	dbg_print_uart_reg_loop
+//		mov	r0, #'\n'
+//		bl	printch
+//		ldmfd   sp!, {r0 - r7, pc}
+//ENDPROC(dbg_print_uart_reg)
+//str_uart1:	.asciz	"Print UART registers.\n"
+//str_uart2:	.asciz	"Divisor:\n"
+//str_uart3:	.asciz	"Normal:\n"
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Crude interface to flash lcd display to extract information when no serial console available
