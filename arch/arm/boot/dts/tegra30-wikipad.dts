@@ -919,15 +919,15 @@
 // Not used
 ////////////////
 			ulpi_clk_py0 {
-				nvidia,pins = "ulpi_clk_py0";
-				nvidia,pins = "ulpi_data0_po1";
-				nvidia,pins = "ulpi_data1_po2";
-				nvidia,pins = "ulpi_data2_po3";
-				nvidia,pins = "ulpi_data3_po4";
-				nvidia,pins = "ulpi_data4_po5";
-				nvidia,pins = "ulpi_data5_po6";
-				nvidia,pins = "ulpi_data6_po7";
-				nvidia,pins = "ulpi_data7_po0";
+				nvidia,pins = "ulpi_clk_py0",
+						"ulpi_data0_po1",
+						"ulpi_data1_po2",
+						"ulpi_data2_po3",
+						"ulpi_data3_po4",
+						"ulpi_data4_po5",
+						"ulpi_data5_po6",
+						"ulpi_data6_po7",
+						"ulpi_data7_po0";
 				nvidia,function = "ulpi";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_ENABLE>;
