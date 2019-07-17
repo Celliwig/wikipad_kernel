@@ -723,6 +723,15 @@
 				nvidia,tristate = <TEGRA_PIN_DISABLE>;
 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
 			};
+// Sensors
+////////////////
+			lcd_sck_pz4 {
+				nvidia,pins = "lcd_sck_pz4";			// mpu3050
+				nvidia,function = "displaya";
+				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+				nvidia,tristate = <TEGRA_PIN_DISABLE>;
+				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+			};
 // Others
 ////////////////
 			kb_row3_pr3 {
@@ -769,13 +778,6 @@
 			};
 			lcd_cs1_n_pw0 {
 				nvidia,pins = "lcd_cs1_n_pw0";
-				nvidia,function = "displaya";
-				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
-				nvidia,tristate = <TEGRA_PIN_DISABLE>;
-				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
-			};
-			lcd_sck_pz4 {						// mpu3050
-				nvidia,pins = "lcd_sck_pz4";
 				nvidia,function = "displaya";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_DISABLE>;
@@ -1157,6 +1159,13 @@
 	i2c@7000c000 {
 		status = "okay";
 		clock-frequency = <100000>;
+
+		gyrometer@68 {
+			compatible = "invn,mpu3050";
+			reg = <0x68>;
+			interrupt-parent = <&gpio>;
+			interrupts = <TEGRA_GPIO(Z, 4) IRQ_TYPE_LEVEL_HIGH>;
+		};
 	};
 
 // I2C2
