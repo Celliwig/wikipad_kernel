@@ -1153,30 +1153,35 @@
 //		status = "okay";
 //	};
 
-//	i2c@7000c000 {
-//		status = "okay";
-//		clock-frequency = <100000>;
-//	};
+// I2C1
+	i2c@7000c000 {
+		status = "okay";
+		clock-frequency = <100000>;
+	};
 
-//	i2c@7000c400 {
-//		status = "okay";
-//		clock-frequency = <100000>;
-//	};
+// I2C2
+	i2c@7000c400 {
+		status = "okay";
+		clock-frequency = <100000>;
+	};
 
-//	i2c@7000c500 {
-//		status = "okay";
-//		clock-frequency = <100000>;
-//	};
+// I2C3
+	i2c@7000c500 {
+		status = "okay";
+		clock-frequency = <100000>;
+	};
 
-//	hdmiddc: i2c@7000c700 {
-//		status = "okay";
-//		clock-frequency = <100000>;
-//	};
+// I2C4
+	hdmiddc: i2c@7000c700 {
+		status = "okay";
+		clock-frequency = <10000>;
+	};
 
-//	i2c@7000d000 {
-//		status = "okay";
-//		clock-frequency = <100000>;
-//
+// I2C5
+	i2c@7000d000 {
+		status = "okay";
+		clock-frequency = <400000>;
+
 //		rt5640: rt5640@1c {
 //			compatible = "realtek,rt5640";
 //			reg = <0x1c>;
@@ -1299,7 +1304,7 @@
 //			ti,vsel0-state-high;
 //			ti,vsel1-state-high;
 //		};
-//	};
+	};
 
 //	spi@7000da00 {
 //		status = "okay";
