@@ -357,7 +357,8 @@ static int max77686_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	}
 
 	max77686_rtc_data_to_tm(data, tm, info);
-
+//	pr_err("max77686: tm: %d-%02d-%02d %02d:%02d:%02d, wday=%d\n",
+//		tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_wday);
 out:
 	mutex_unlock(&info->lock);
 	return ret;
