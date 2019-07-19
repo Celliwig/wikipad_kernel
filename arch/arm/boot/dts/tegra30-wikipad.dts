@@ -1191,6 +1191,240 @@
 		status = "okay";
 		clock-frequency = <400000>;
 
+		pmic: max77612@3c {
+			compatible = "maxim,max77663";
+			reg = <0x3c>;
+			interrupts = <0 86 IRQ_TYPE_LEVEL_HIGH>;
+			#interrupt-cells = <2>;
+			interrupt-controller;
+
+//			gpio-controller;
+			#gpio-cells = <2>;
+
+//			maxim,enable-clock32k-out;
+//			maxim,system-pmic-power-off;
+//			maxim,hot-die-threshold-temp = <110000>;
+
+			#thermal-sensor-cells = <0>;
+
+//			pinctrl-names = "default";
+//			pinctrl-0 = <&max77620_default>;
+//			max77620_default: pinmux@0 {
+//				pin_gpio0_7 {
+//					pins = "gpio0", "gpio7";
+//					function = "gpio";
+//				};
+//				pin_gpio1 {
+//					pins = "gpio1";
+//					function = "fps-out";
+//					drive-push-pull = <1>;
+//					maxim,fps-source = <FPS_SRC_0>;
+//					maxim,fps-power-up-period = <7>;
+//					maxim,fps-power-down-period = <0>;
+//				};
+//				pin_gpio2_3 {
+//					pins = "gpio2", "gpio3";
+//					function = "fps-out";
+//					drive-open-drain = <1>;
+//					maxim,fps-source = <FPS_SRC_0>;
+//				};
+//				pin_gpio4 {
+//					pins = "gpio4";
+//					function = "32k-out1";
+//				};
+//				pin_gpio5_6 {
+//					pins = "gpio5", "gpio6";
+//					function = "gpio";
+//					drive-push-pull = <1>;
+//				};
+//			};
+
+//			watchdog {
+//				maxim,wdt-timeout = <16>;
+//				maxim,wdt-clear-time = <13>;
+//				status = "disabled";
+//			};
+
+//			fps {
+//				#address-cells = <1>;
+//				#size-cells = <0>;
+//				fps@0 {
+//					reg = <0>;
+//					maxim,fps-time-period = <2560>;
+//					maxim,fps-enable-input = <FPS_EN_SRC_EN0>;
+//				};
+//				fps@1 {
+//					reg = <1>;
+//					maxim,fps-time-period = <2560>;
+//					maxim,fps-enable-input = <FPS_EN_SRC_EN1>;
+//					maxim,enable-sleep;
+//				};
+//				fps@2 {
+//					reg = <2>;
+//					maxim,fps-enable-input = <FPS_EN_SRC_EN0>;
+//				};
+//			};
+
+//			backup-battery {
+//				maxim,backup-battery-charging-current = <100>;
+//				maxim,backup-battery-charging-voltage = <3000000>;
+//				maxim,backup-battery-output-resistor = <100>;
+//			};
+
+//			regulators {
+//				in-ldo0-1-supply = <&max77620_sd2>;
+//				in-ldo7-8-supply = <&max77620_sd2>;
+//				max77620_sd0: sd0 {
+//					regulator-name = "vdd_core";
+//					regulator-min-microvolt = <600000>;
+//					regulator-max-microvolt = <1400000>;
+//					regulator-enable-ramp-delay = <146>;
+//					regulator-disable-ramp-delay = <4080>;
+//					regulator-ramp-delay = <27500>;
+//					regulator-ramp-delay-scale = <300>;
+//					regulator-boot-on;
+//					regulator-always-on;
+//					maxim,fps-source = <FPS_SRC_1>;
+//				};
+//				max77620_sd1: sd1 {
+//					regulator-name = "vddio-ddr";
+//					regulator-always-on;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_0>;
+//					regulator-enable-ramp-delay = <130>;
+//					regulator-disable-ramp-delay = <145800>;
+//					regulator-ramp-delay = <27500>;
+//					regulator-ramp-delay-scale = <300>;
+//				};
+//				max77620_sd2: sd2 {
+//					regulator-name = "vdd-pre-reg";
+//					regulator-min-microvolt = <1350000>;
+//					regulator-max-microvolt = <1350000>;
+//					regulator-enable-ramp-delay = <176>;
+//					regulator-disable-ramp-delay = <32000>;
+//					regulator-ramp-delay = <27500>;
+//					regulator-ramp-delay-scale = <350>;
+//					regulator-always-on;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//				max77620_sd3: sd3 {
+//					regulator-name = "vdd-1v8";
+//					regulator-min-microvolt = <1800000>;
+//					regulator-max-microvolt = <1800000>;
+//					regulator-enable-ramp-delay = <242>;
+//					regulator-disable-ramp-delay = <118000>;
+//					regulator-ramp-delay = <27500>;
+//					regulator-ramp-delay-scale = <360>;
+//					regulator-always-on;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_0>;
+//				};
+//				max77620_ldo0: ldo0 {
+//					regulator-name = "avdd-sys";
+//					regulator-min-microvolt = <1200000>;
+//					regulator-max-microvolt = <1200000>;
+//					regulator-enable-ramp-delay = <26>;
+//					regulator-disable-ramp-delay = <626>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//				max77620_ldo1: ldo1 {
+//					regulator-name = "vdd-pex";
+//					regulator-min-microvolt = <1075000>;
+//					regulator-max-microvolt = <1075000>;
+//					regulator-enable-ramp-delay = <22>;
+//					regulator-disable-ramp-delay = <630>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//				max77620_ldo2: ldo2 {
+//					regulator-name = "vddio-sdmmc3";
+//					regulator-min-microvolt = <1800000>;
+//					regulator-max-microvolt = <3300000>;
+//					regulator-enable-ramp-delay = <62>;
+//					regulator-disable-ramp-delay = <650>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//				max77620_ldo3: ldo3 {
+//					regulator-name = "vdd-cam-hv";
+//					regulator-min-microvolt = <2800000>;
+//					regulator-max-microvolt = <2800000>;
+//					regulator-enable-ramp-delay = <50>;
+//					regulator-disable-ramp-delay = <1110>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//				max77620_ldo4: ldo4 {
+//					regulator-name = "vdd-rtc";
+//					regulator-min-microvolt = <850000>;
+//					regulator-max-microvolt = <850000>;
+//					regulator-enable-ramp-delay = <22>;
+//					regulator-disable-ramp-delay = <610>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					regulator-always-on;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_0>;
+//				};
+//				max77620_ldo5: ldo5 {
+//					regulator-name = "avdd-ts-hv";
+//					regulator-min-microvolt = <3300000>;
+//					regulator-max-microvolt = <3300000>;
+//					regulator-enable-ramp-delay = <62>;
+//					regulator-disable-ramp-delay = <640>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//				max77620_ldo6: ldo6 {
+//					regulator-name = "vdd-ts";
+//					regulator-min-microvolt = <1800000>;
+//					regulator-max-microvolt = <1800000>;
+//					regulator-enable-ramp-delay = <36>;
+//					regulator-disable-ramp-delay = <674>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					regulator-always-on;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_0>;
+//					maxim,fps-power-up-period = <7>;
+//					maxim,fps-power-down-period = <0>;
+//				};
+//				max77620_ldo7: ldo7 {
+//					regulator-name = "vdd-gen-pll-edp";
+//					regulator-min-microvolt = <1050000>;
+//					regulator-max-microvolt = <1050000>;
+//					regulator-enable-ramp-delay = <24>;
+//					regulator-disable-ramp-delay = <2768>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					regulator-always-on;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_1>;
+//				};
+//				max77620_ldo8: ldo8 {
+//					regulator-name = "vdd-hdmi-dp";
+//					regulator-min-microvolt = <1050000>;
+//					regulator-max-microvolt = <1050000>;
+//					regulator-enable-ramp-delay = <22>;
+//					regulator-disable-ramp-delay = <1160>;
+//					regulator-ramp-delay = <100000>;
+//					regulator-ramp-delay-scale = <200>;
+//					regulator-boot-on;
+//					maxim,fps-source = <FPS_SRC_NONE>;
+//				};
+//			};
+		};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //		rt5640: rt5640@1c {
 //			compatible = "realtek,rt5640";
 //			reg = <0x1c>;
@@ -1325,9 +1559,9 @@
 //		};
 //	};
 
-//	pmc@7000e400 {
-//		status = "okay";
-//		nvidia,invert-interrupt;
+	pmc@7000e400 {
+		status = "okay";
+		nvidia,invert-interrupt;				// If this is disabled kernel startup pauses for a minute
 //		nvidia,suspend-mode = <1>;
 //		nvidia,cpu-pwr-good-time = <2000>;
 //		nvidia,cpu-pwr-off-time = <200>;
@@ -1335,7 +1569,7 @@
 //		nvidia,core-pwr-off-time = <0>;
 //		nvidia,core-power-req-active-high;
 //		nvidia,sys-clock-req-active-high;
-//	};
+	};
 
 //	ahub@70080000 {
 //		i2s@70080400 {
