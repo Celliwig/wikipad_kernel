@@ -224,6 +224,93 @@ static const struct regmap_config max77663_regmap_config = {
 	.volatile_table = &max77620_volatile_table,
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Debug routines (direct read)
+// Code pulled from old driver
+
+static inline int max77612_i2c_raw_read(struct i2c_client *client, u8 addr, void *dest, u32 bytes) {
+	int ret;
+
+	if (bytes > 1) {
+		ret = i2c_smbus_read_i2c_block_data(client, addr, bytes, dest);
+		if (ret < 0) return ret;
+	} else {
+		ret = i2c_smbus_read_byte_data(client, addr);
+		if (ret < 0) return ret;
+
+		*((u8 *)dest) = (u8)ret;
+	}
+
+	dev_dbg(&client->dev, "i2c_read: addr=0x%02x, dest=0x%02x, bytes=%u\n", addr, *((u8 *)dest), bytes);
+	return 0;
+}
+
+static void max77612_dump_regs(struct i2c_client *client, u8 *addrs, int num_addrs) {
+	int ret = 0;
+	u8 val;
+	int i;
+
+	for (i = 0; i < num_addrs; i++) {
+		printk("   0x%02x: ", addrs[i]);
+
+		ret = max77612_i2c_raw_read(client, addrs[i], &val, 1);
+		if (ret == 0) {
+			printk("0x%02x\n", val);
+		} else {
+			printk("<read fail: %d>\n", ret);
+		}
+	}
+}
+
+static void max77612_dbg_dump(struct i2c_client *client) {
+	/* Excluded interrupt status register to prevent register clear */
+	u8 global_regs[] = { 0x00, 0x01, 0x02, 0x05, 0x0D, 0x0E, 0x13 };
+	u8 sd_regs[] = {
+		0x07, 0x0F, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+		0x1E, 0x1F, 0x20, 0x21, 0x22
+	};
+	u8 ldo_regs[] = {
+		0x10, 0x11, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A,
+		0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34,
+		0x35
+	};
+	u8 gpio_regs[] = {
+		0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
+		0x40
+	};
+	u8 osc_32k_regs[] = { 0x03 };
+	u8 bbc_regs[] = { 0x04 };
+	u8 onoff_regs[] = { 0x12, 0x15, 0x41, 0x42 };
+	u8 fps_regs[] = {
+		0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C,
+		0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56,
+		0x57
+	};
+	u8 cid_regs[] = { 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D };
+
+	printk("MAX77612 Registers\n");
+	printk(" [Global]\n");
+	max77612_dump_regs(client, global_regs, ARRAY_SIZE(global_regs));
+	printk(" [Step-Down]\n");
+	max77612_dump_regs(client, sd_regs, ARRAY_SIZE(sd_regs));
+	printk(" [LDO]\n");
+	max77612_dump_regs(client, ldo_regs, ARRAY_SIZE(ldo_regs));
+	printk(" [GPIO]\n");
+	max77612_dump_regs(client, gpio_regs, ARRAY_SIZE(gpio_regs));
+	printk(" [32kHz Oscillator]\n");
+	max77612_dump_regs(client, osc_32k_regs, ARRAY_SIZE(osc_32k_regs));
+	printk(" [Backup Battery Charger]\n");
+	max77612_dump_regs(client, bbc_regs, ARRAY_SIZE(bbc_regs));
+	printk(" [On/OFF Controller]\n");
+	max77612_dump_regs(client, onoff_regs, ARRAY_SIZE(onoff_regs));
+	printk(" [Flexible Power Sequencer]\n");
+	max77612_dump_regs(client, fps_regs, ARRAY_SIZE(fps_regs));
+	printk(" [Chip Identification]\n");
+	max77612_dump_regs(client, cid_regs, ARRAY_SIZE(cid_regs));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /*
  * MAX77620 and MAX20024 has the following steps of the interrupt handling
  * for TOP interrupts:
@@ -560,6 +647,8 @@ static int max77620_probe(struct i2c_client *client,
 		dev_err(chip->dev, "Failed to add MFD children: %d\n", ret);
 		return ret;
 	}
+
+	max77612_dbg_dump(client);
 
 	return 0;
 }
