@@ -648,7 +648,7 @@ static int max77620_probe(struct i2c_client *client,
 		return ret;
 	}
 
-	max77612_dbg_dump(client);
+	//max77612_dbg_dump(client);
 
 	return 0;
 }
