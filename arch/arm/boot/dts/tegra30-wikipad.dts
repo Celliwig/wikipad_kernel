@@ -2,6 +2,7 @@
 /dts-v1/;
 
 #include "tegra30.dtsi"
+#include <dt-bindings/mfd/max77620.h>
 
 / {
 	model = "Wikipad Tablet";
@@ -1198,14 +1199,31 @@
 			#interrupt-cells = <2>;
 			interrupt-controller;
 
-//			gpio-controller;
+			gpio-controller;
 			#gpio-cells = <2>;
 
-//			maxim,enable-clock32k-out;
+			maxim,enable-clock32k-out;
 //			maxim,system-pmic-power-off;
 //			maxim,hot-die-threshold-temp = <110000>;
 
 			#thermal-sensor-cells = <0>;
+
+			fps {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				fps0 {
+					maxim,shutdown-fps-time-period-us = <2560>;
+					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN0>;
+				};
+				fps1 {
+					maxim,shutdown-fps-time-period-us = <2560>;
+					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN1>;
+				};
+				fps2 {
+					maxim,shutdown-fps-time-period-us = <1280>;
+					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN0>;
+				};
+			};
 
 //			pinctrl-names = "default";
 //			pinctrl-0 = <&max77620_default>;
@@ -1243,26 +1261,6 @@
 //				maxim,wdt-timeout = <16>;
 //				maxim,wdt-clear-time = <13>;
 //				status = "disabled";
-//			};
-
-//			fps {
-//				#address-cells = <1>;
-//				#size-cells = <0>;
-//				fps@0 {
-//					reg = <0>;
-//					maxim,fps-time-period = <2560>;
-//					maxim,fps-enable-input = <FPS_EN_SRC_EN0>;
-//				};
-//				fps@1 {
-//					reg = <1>;
-//					maxim,fps-time-period = <2560>;
-//					maxim,fps-enable-input = <FPS_EN_SRC_EN1>;
-//					maxim,enable-sleep;
-//				};
-//				fps@2 {
-//					reg = <2>;
-//					maxim,fps-enable-input = <FPS_EN_SRC_EN0>;
-//				};
 //			};
 
 //			backup-battery {
