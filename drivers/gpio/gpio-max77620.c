@@ -94,6 +94,24 @@ static const struct regmap_irq_chip max77620_gpio_irq_chip = {
 	.type_base = MAX77620_REG_GPIO0,
 };
 
+// Dumps GPIO registers
+static void max77620_dump_gpio_regs(struct max77620_gpio *mgpio)
+{
+	unsigned int val;
+	int ret,reg_addr;
+
+	dev_err(mgpio->dev, "[GPIO Registers]\n");
+	for (reg_addr = MAX77620_REG_GPIO0; reg_addr <= MAX77620_REG_GPIO7; reg_addr++)
+	{
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+}
+
 static int max77620_gpio_dir_input(struct gpio_chip *gc, unsigned int offset)
 {
 	struct max77620_gpio *mgpio = gpiochip_get_data(gc);
@@ -284,6 +302,8 @@ static int max77620_gpio_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to add gpio irq_chip %d\n", ret);
 		return ret;
 	}
+
+	//max77620_dump_gpio_regs(mgpio);
 
 	return 0;
 }
