@@ -1619,7 +1619,7 @@
 
 	pmc@7000e400 {
 		status = "okay";
-		nvidia,invert-interrupt;				// If this is disabled kernel startup pauses for a minute
+		nvidia,invert-interrupt;				// The signal is active low, so must be inverted
 //		nvidia,suspend-mode = <1>;
 //		nvidia,cpu-pwr-good-time = <2000>;
 //		nvidia,cpu-pwr-off-time = <200>;
