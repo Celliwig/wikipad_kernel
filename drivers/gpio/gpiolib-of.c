@@ -348,6 +348,10 @@ static struct gpio_desc *of_parse_own_gpio(struct device_node *np,
 		*dflags |= GPIOD_OUT_LOW;
 	else if (of_property_read_bool(np, "output-high"))
 		*dflags |= GPIOD_OUT_HIGH;
+	else if (of_property_read_bool(np, "opendrain-output-low"))
+		*dflags |= GPIOD_OUT_LOW_OPEN_DRAIN;
+	else if (of_property_read_bool(np, "opendrain-output-high"))
+		*dflags |= GPIOD_OUT_HIGH_OPEN_DRAIN;
 	else {
 		pr_warn("GPIO line %d (%s): no hogging state specified, bailing out\n",
 			desc_to_gpio(desc), np->name);
