@@ -99,6 +99,44 @@ struct max77620_regulator {
 	fps_src == MAX77620_FPS_SRC_1 ? "FPS_SRC_1" :	\
 	fps_src == MAX77620_FPS_SRC_2 ? "FPS_SRC_2" : "FPS_SRC_NONE")
 
+// Dumps Regulator registers
+static void max77620_dump_regulator_regs(struct max77620_regulator *pmic)
+{
+	unsigned int val;
+	int ret, i;
+
+	// Regulator register lists
+	u8 sd_regs[] = {
+		0x07, 0x0F, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+		0x1E, 0x1F, 0x20, 0x21, 0x22
+	};
+	u8 ldo_regs[] = {
+		0x10, 0x11, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A,
+		0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34,
+		0x35
+	};
+
+	dev_err(pmic->dev, "[Regulator SD Registers]\n");
+	for (i = 0; i < ARRAY_SIZE(sd_regs); i++) {
+		ret = regmap_read(pmic->rmap, sd_regs[i], &val);
+		if (ret < 0) {
+			dev_err(pmic->dev, "0x%02x: read failed\n", sd_regs[i]);
+		} else {
+			dev_err(pmic->dev, "0x%02x: 0x%02x\n", sd_regs[i], val);
+		}
+	}
+
+	dev_err(pmic->dev, "[Regulator LDO Registers]\n");
+	for (i = 0; i < ARRAY_SIZE(ldo_regs); i++) {
+		ret = regmap_read(pmic->rmap, ldo_regs[i], &val);
+		if (ret < 0) {
+			dev_err(pmic->dev, "0x%02x: read failed\n", ldo_regs[i]);
+		} else {
+			dev_err(pmic->dev, "0x%02x: 0x%02x\n", ldo_regs[i], val);
+		}
+	}
+}
+
 static int max77620_regulator_get_fps_src(struct max77620_regulator *pmic,
 					  int id)
 {
@@ -849,6 +887,8 @@ static int max77620_regulator_probe(struct platform_device *pdev)
 			return ret;
 		}
 	}
+
+	//max77620_dump_regulator_regs(pmic);
 
 	return 0;
 }
