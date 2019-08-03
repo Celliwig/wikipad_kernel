@@ -31,6 +31,19 @@
 		reg = <0x80000000 0x3ff00000>;		// mem=1022M@2048M
 	};
 
+	clocks {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		clk32k_in: clock@0 {
+			compatible = "fixed-clock";
+			reg = <0>;
+			#clock-cells = <0>;
+			clock-frequency = <32768>;
+		};
+	};
+
 //	pcie@3000 {
 //		status = "okay";
 //
@@ -57,21 +70,6 @@
 //			nvidia,num-lanes = <2>;
 //		};
 //	};
-
-//	host1x@50000000 {
-//		hdmi@54280000 {
-//			status = "okay";
-//
-//			hdmi-supply = <&vdd_5v0_hdmi>;
-//			vdd-supply = <&sys_3v3_reg>;
-//			pll-supply = <&vio_reg>;
-//
-//			nvidia,hpd-gpio =
-//				<&gpio TEGRA_GPIO(N, 7) GPIO_ACTIVE_HIGH>;
-//			nvidia,ddc-i2c-bus = <&hdmiddc>;
-//		};
-//	};
-
 
 // Copied from board-nabi2-pinmux
 ///////////////////////////////////
@@ -1157,12 +1155,6 @@
 //		status = "okay";
 //	};
 
-// PWM controller
-//  - Backlight
-	pwm@7000a000 {
-		status = "okay";
-	};
-
 // I2C1
 	i2c@7000c000 {
 		status = "okay";
@@ -1677,6 +1669,12 @@
 //		status = "okay";
 //	};
 
+// PWM controller
+//  - Backlight
+	pwm@7000a000 {
+		status = "okay";
+	};
+
 	backlight: backlight {
 		compatible = "pwm-backlight";
 
@@ -1720,18 +1718,19 @@
 			 236 238 240 244 248 251 253 255>;
 	};
 
-	clocks {
-		compatible = "simple-bus";
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		clk32k_in: clock@0 {
-			compatible = "fixed-clock";
-			reg = <0>;
-			#clock-cells = <0>;
-			clock-frequency = <32768>;
-		};
-	};
+//	host1x@50000000 {
+//		hdmi@54280000 {
+//			status = "okay";
+//
+//			hdmi-supply = <&vdd_5v0_hdmi>;
+//			vdd-supply = <&sys_3v3_reg>;
+//			pll-supply = <&vio_reg>;
+//
+//			nvidia,hpd-gpio =
+//				<&gpio TEGRA_GPIO(N, 7) GPIO_ACTIVE_HIGH>;
+//			nvidia,ddc-i2c-bus = <&hdmiddc>;
+//		};
+//	};
 
 	regulators {
 		compatible = "simple-bus";
