@@ -40,7 +40,8 @@ struct panel_lvds {
 	bool data_mirror;
 
 	struct backlight_device *backlight;
-	struct regulator *supply;
+	struct regulator *supply1;
+	struct regulator *supply2;
 
 	struct gpio_desc *enable_gpio;
 	struct gpio_desc *reset_gpio;
@@ -71,8 +72,15 @@ static int panel_lvds_unprepare(struct drm_panel *panel)
 	if (lvds->enable_gpio)
 		gpiod_set_value_cansleep(lvds->enable_gpio, 0);
 
-	if (lvds->supply)
-		regulator_disable(lvds->supply);
+	// Do the supplies in the reverse order
+	if (lvds->supply2) {
+		regulator_disable(lvds->supply2);
+		msleep(5);
+	}
+	if (lvds->supply1) {
+		regulator_disable(lvds->supply1);
+		msleep(5);
+	}
 
 	return 0;
 }
@@ -81,15 +89,26 @@ static int panel_lvds_prepare(struct drm_panel *panel)
 {
 	struct panel_lvds *lvds = to_panel_lvds(panel);
 
-	if (lvds->supply) {
+	// Activate regulators
+	if (lvds->supply1) {
 		int err;
 
-		err = regulator_enable(lvds->supply);
+		err = regulator_enable(lvds->supply1);
 		if (err < 0) {
-			dev_err(lvds->dev, "failed to enable supply: %d\n",
-				err);
+			dev_err(lvds->dev, "failed to enable supply1: %d\n", err);
 			return err;
 		}
+		msleep(5);
+	}
+	if (lvds->supply2) {
+		int err;
+
+		err = regulator_enable(lvds->supply2);
+		if (err < 0) {
+			dev_err(lvds->dev, "failed to enable supply2: %d\n", err);
+			return err;
+		}
+		msleep(5);
 	}
 
 	if (lvds->enable_gpio)
@@ -212,18 +231,31 @@ static int panel_lvds_probe(struct platform_device *pdev)
 	if (ret < 0)
 		return ret;
 
-	lvds->supply = devm_regulator_get_optional(lvds->dev, "power");
-	if (IS_ERR(lvds->supply)) {
-		ret = PTR_ERR(lvds->supply);
+	lvds->supply1 = devm_regulator_get_optional(lvds->dev, "power1");
+	if (IS_ERR(lvds->supply1)) {
+		ret = PTR_ERR(lvds->supply1);
 
 		if (ret != -ENODEV) {
 			if (ret != -EPROBE_DEFER)
-				dev_err(lvds->dev, "failed to request regulator: %d\n",
+				dev_err(lvds->dev, "failed to request regulator1: %d\n",
 					ret);
 			return ret;
 		}
 
-		lvds->supply = NULL;
+		lvds->supply1 = NULL;
+	}
+	lvds->supply2 = devm_regulator_get_optional(lvds->dev, "power2");
+	if (IS_ERR(lvds->supply2)) {
+		ret = PTR_ERR(lvds->supply2);
+
+		if (ret != -ENODEV) {
+			if (ret != -EPROBE_DEFER)
+				dev_err(lvds->dev, "failed to request regulator2: %d\n",
+					ret);
+			return ret;
+		}
+
+		lvds->supply2 = NULL;
 	}
 
 	/* Get GPIOs and backlight controller. */

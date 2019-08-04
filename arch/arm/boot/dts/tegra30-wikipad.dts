@@ -449,7 +449,7 @@
 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
 			};
 			lcd_m1_pw1 {			
-				nvidia,pins = "lcd_m1_pw1",			// lvds_vdd_3v
+				nvidia,pins = "lcd_m1_pw1",			// vdd_lvds_dreg
 						"lcd_pwr0_pb2",			// fixed_reg_en_vddio_v
 						"lcd_pwr1_pc1",			// fixed_reg_en_3v3_fus
 						"lcd_pwr2_pc6";			// fixed_reg_en_vdd_sdm
@@ -458,6 +458,14 @@
 				nvidia,tristate = <TEGRA_PIN_DISABLE>;
 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
 			};
+			gmi_ad10_ph2 {						// vdd_lvds_areg
+				nvidia,pins = "gmi_ad10_ph2";
+				nvidia,function = "pwm2";
+				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+				nvidia,tristate = <TEGRA_PIN_DISABLE>;
+				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+			};
+
 // Camera
 ////////////////
 			cam_mclk_pcc0 {
@@ -617,6 +625,13 @@
 				nvidia,tristate = <TEGRA_PIN_DISABLE>;
 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
 			};
+			lcd_dc0_pn6 {						// LVDS Encoder Shutdown
+				nvidia,pins = "lcd_dc0_pn6";
+				nvidia,function = "displaya";
+				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+				nvidia,tristate = <TEGRA_PIN_DISABLE>;
+				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+			};
 			gmi_ad8_ph0 {						// Backlight PWM
 				nvidia,pins = "gmi_ad8_ph0";
 				nvidia,function = "pwm0";
@@ -762,13 +777,6 @@
 				nvidia,tristate = <TEGRA_PIN_DISABLE>;
 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
 			};
-			lcd_dc0_pn6 {						// lvds_shutdown
-				nvidia,pins = "lcd_dc0_pn6";
-				nvidia,function = "displaya";
-				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
-				nvidia,tristate = <TEGRA_PIN_DISABLE>;
-				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
-			};
 			lcd_cs0_n_pn4 {
 				nvidia,pins = "lcd_cs0_n_pn4";
 				nvidia,function = "displaya";
@@ -866,13 +874,6 @@
 				nvidia,function = "kbc";
 				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
 				nvidia,tristate = <TEGRA_PIN_ENABLE>;
-				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
-			};
-			gmi_ad10_ph2 {						// lvds_avdd_en
-				nvidia,pins = "gmi_ad10_ph2";
-				nvidia,function = "pwm2";
-				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
-				nvidia,tristate = <TEGRA_PIN_DISABLE>;
 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
 			};
 			ulpi_dir_py1 {
@@ -1615,14 +1616,40 @@
 		#size-cells = <0>;
 
 // Temporary regulator for vin-supply
-		vdd_33v_in_reg: regulator@0 {
+		vdd_3v3_main_reg: regulator@0 {
 			compatible = "regulator-fixed";
 			reg = <0>;
-			regulator-name = "vdd_33v_in";
+			regulator-name = "vdd_3v3_main_reg";
 			regulator-min-microvolt = <3387500>;
 			regulator-max-microvolt = <3387500>;
 			regulator-always-on;
 		};
+
+//// LVDS analogue supply
+//		vdd_lvds_areg: regulator@1 {
+//			compatible = "regulator-fixed";
+//			reg = <1>;
+//			regulator-name = "vdd_lvds_areg";
+//			regulator-min-microvolt = <3300000>;
+//			regulator-max-microvolt = <3300000>;
+//			gpio = <&gpio TEGRA_GPIO(H, 2) GPIO_ACTIVE_HIGH>;
+//			regulator-boot-on;
+//			enable-active-high;
+//			vin-supply = <&vdd_3v3_main_reg>;
+//		};
+
+//// LVDS digital supply
+//		vdd_lvds_dreg: regulator@2 {
+//			compatible = "regulator-fixed";
+//			reg = <2>;
+//			regulator-name = "vdd_lvds_dreg";
+//			regulator-min-microvolt = <3300000>;
+//			regulator-max-microvolt = <3300000>;
+//			gpio = <&gpio TEGRA_GPIO(W, 1) GPIO_ACTIVE_HIGH>;
+//			regulator-boot-on;
+//			enable-active-high;
+//			vin-supply = <&vdd_3v3_main_reg>;
+//		};
 
 //		chargepump_5v_reg: regulator@1 {
 //			compatible = "regulator-fixed";
@@ -1795,7 +1822,7 @@
 		compatible = "pwm-backlight";
 
 		enable-gpios = <&gpio TEGRA_GPIO(H, 3) GPIO_ACTIVE_HIGH>;
-		power-supply = <&vdd_33v_in_reg>;
+		power-supply = <&vdd_3v3_main_reg>;
 		pwms = <&pwm 0 5000000>;
 
 		default-brightness-level = <30>;
@@ -1899,8 +1926,9 @@
 		height-mm = <94>;
 
 		data-mapping = "jeida-18";
-		//power-supply = <&vdd_pnl_reg>;
-		//enable-gpios = <&gpio 90 0>;
+		//power-supply1 = <&vdd_lvds_areg>;					// Fudged driver to implement multiple rails
+		//power-supply2 = <&vdd_lvds_dreg>;
+		enable-gpios = <&gpio TEGRA_GPIO(N, 6) GPIO_ACTIVE_HIGH>;		// Actually implemented on the LVDS encoder
 
 		backlight = <&lcd_backlight>;
 
