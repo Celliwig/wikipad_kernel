@@ -1791,7 +1791,7 @@
 		status = "okay";
 	};
 
-	backlight: backlight {
+	lcd_backlight: backlight {
 		compatible = "pwm-backlight";
 
 		enable-gpios = <&gpio TEGRA_GPIO(H, 3) GPIO_ACTIVE_HIGH>;
@@ -1834,7 +1834,23 @@
 			 236 238 240 244 248 251 253 255>;
 	};
 
-//	host1x@50000000 {
+	host1x@50000000 {
+// LCD
+                dc@54200000 {
+			rgb {
+				status = "okay";
+				nvidia,panel = <&wikipad_lcd>;
+			};
+
+			port@0 {
+				dc_rgb_output: endpoint {
+					remote-endpoint = <&lvds_enc_in>;
+					//bus-width = <16>;
+				};
+			};
+		};
+
+// HDMI out
 //		hdmi@54280000 {
 //			status = "okay";
 //
@@ -1846,7 +1862,67 @@
 //				<&gpio TEGRA_GPIO(N, 7) GPIO_ACTIVE_HIGH>;
 //			nvidia,ddc-i2c-bus = <&hdmiddc>;
 //		};
-//	};
+	};
+
+// SN75LVDS83B
+	lvds-encoder {
+		compatible = "lvds-encoder";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				lvds_enc_in: endpoint {
+					remote-endpoint = <&dc_rgb_output>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				lvds_enc_out: endpoint {
+					remote-endpoint = <&wikipad_lcd_in>;
+				};
+			};
+		};
+	};
+
+	wikipad_lcd: panel {
+		compatible = "wikipad7,lcd", "panel-lvds";
+
+		width-mm = <151>;
+		height-mm = <94>;
+
+		data-mapping = "jeida-18";
+		//power-supply = <&vdd_pnl_reg>;
+		//enable-gpios = <&gpio 90 0>;
+
+		backlight = <&lcd_backlight>;
+
+		panel-timing {
+			/* 800x1280 @60Hz */
+			clock-frequency = <81750000>;
+			hsync-len = <64>;
+			vsync-len = <1>;
+			hback-porch = <128>;
+			vback-porch = <2>;
+			hactive = <800>;
+			vactive = <1280>;
+			hfront-porch = <64>;
+			vfront-porch = <5>;
+		};
+
+		port {
+			wikipad_lcd_in: endpoint {
+				remote-endpoint = <&lvds_enc_out>;
+			};
+		};
+	};
 
 //	sound {
 //		compatible = "nvidia,tegra-audio-rt5640-beaver",
