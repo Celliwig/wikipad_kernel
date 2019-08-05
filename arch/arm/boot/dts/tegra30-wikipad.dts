@@ -15,9 +15,10 @@
 //		serial0 = &uarta;
 //	};
 
-//	chosen {
+	chosen {
+//		bootargs = "boot_delay=1000";
 //		stdout-path = "serial0:115200n8";
-//	};
+	};
 
 	firmware {
 		trusted-foundations {
@@ -1777,11 +1778,20 @@
 //	};
 
 //	sdhci@78000600 {
+//		#address-cells = <1>;
+//		#size-cells = <0>;
+//
 //		status = "okay";
 //		bus-width = <8>;
 //		non-removable;
 //		mmc-ddr-1_8v;
 //		mmc-hs400-1_8v;
+//
+//		mmccard: mmccard@0 {
+//			reg = <0>;
+//			compatible = "mmc-card";
+//			broken-hpi;
+//		};
 //	};
 
 //	usb@7d000000 {
