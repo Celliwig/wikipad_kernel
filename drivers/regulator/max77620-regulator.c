@@ -437,7 +437,11 @@ static int max77620_init_pmic(struct max77620_regulator *pmic, int id)
 		return ret;
 
 	pmic->current_power_mode[id] = ret;
-	pmic->enable_power_mode[id] = MAX77620_POWER_MODE_NORMAL;
+	if (id == MAX77620_REGULATOR_ID_SD0) {					// Hack to ensure SD0 is controlled by EN2 line
+		pmic->enable_power_mode[id] = MAX77620_POWER_MODE_DISABLE;
+	} else {
+		pmic->enable_power_mode[id] = MAX77620_POWER_MODE_NORMAL;
+	}
 
 	if (rpdata->active_fps_src == MAX77620_FPS_SRC_DEF) {
 		ret = max77620_regulator_get_fps_src(pmic, id);
@@ -805,7 +809,7 @@ static struct max77620_regulator_info max77663_regs_info[MAX77620_NUM_REGS] = {
 	RAIL_SD(SD1, sd1, "in-sd1", SD1, 800000, 1587500, 12500, 0x3F, NONE),	// Changed volt mask to match old driver
 	RAIL_SD(SD2, sd2, "in-sd2", SDX, 600000, 3787500, 12500, 0xFF, NONE),
 	RAIL_SD(SD3, sd3, "in-sd3", SDX, 600000, 3787500, 12500, 0xFF, NONE),
-	RAIL_SD(SD4, sd4, "in-sd4", SDX, 600000, 3787500, 12500, 0xFF, NONE),
+//	RAIL_SD(SD4, sd4, "in-sd4", SDX, 600000, 3787500, 12500, 0xFF, NONE),	// Old driver/boardfiles miss out this (Max77612???)
 
 	RAIL_LDO(LDO0, ldo0, "in-ldo0-1", N, 800000, 2375000, 25000),
 	RAIL_LDO(LDO1, ldo1, "in-ldo0-1", N, 800000, 2375000, 25000),
@@ -860,7 +864,8 @@ static int max77620_regulator_probe(struct platform_device *pdev)
 		struct regulator_dev *rdev;
 		struct regulator_desc *rdesc;
 
-		if ((max77620_chip->chip_id == MAX77620) &&
+		// Ignore SD4 for Max77620 / Max77663 (Max77612)
+		if (((max77620_chip->chip_id == MAX77620) || (max77620_chip->chip_id == MAX77663)) &&
 		    (id == MAX77620_REGULATOR_ID_SD4))
 			continue;
 
