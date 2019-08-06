@@ -1333,42 +1333,48 @@
 			regulators {
 //				in-ldo0-1-supply = <&max77620_sd3>;
 //				in-ldo7-8-supply = <&max77620_sd3>;
-//				max77620_sd0: sd0 {
-//					regulator-name = "vdd_core";
-//					regulator-min-microvolt = <600000>;
-//					regulator-max-microvolt = <3387500>;
-//					regulator-enable-ramp-delay = <146>;
-//					regulator-disable-ramp-delay = <4080>;
-//					regulator-ramp-delay = <27500>;
-//					regulator-ramp-delay-scale = <300>;
-//					regulator-boot-on;
-//					regulator-always-on;
-//					maxim,fps-source = <FPS_SRC_1>;
-//				};
-//				max77620_sd1: sd1 {
-//					regulator-name = "vddio-ddr";
-//					regulator-always-on;
-//					regulator-boot-on;
-//					maxim,fps-source = <FPS_SRC_0>;
-//					regulator-enable-ramp-delay = <130>;
-//					regulator-disable-ramp-delay = <145800>;
-//					regulator-ramp-delay = <27500>;
-//					regulator-ramp-delay-scale = <300>;
-//				};
-//				max77620_sd2: sd2 {
-//					regulator-name = "vdd_gen1v8";
-//					regulator-min-microvolt = <1800000>;
-//					regulator-max-microvolt = <1800000>;
-//					regulator-always-on;
-//					maxim,fps-source = <MAX77620_FPS_SRC_0>;
-//				};
-//				max77620_sd3: sd3 {
-//					regulator-name = "vdd_ddr3l_1v35";
-//					regulator-min-microvolt = <600000>;
-//					regulator-max-microvolt = <3387500>;
-//					regulator-always-on;
-//					maxim,fps-source = <MAX77620_FPS_SRC_0>;
-//				};
+				max77620_sd0: sd0 {
+					regulator-name = "vdd_cpu";
+					regulator-min-microvolt = <600000>;
+					regulator-max-microvolt = <3387500>;
+					regulator-enable-ramp-delay = <146>;			// Guess
+					regulator-disable-ramp-delay = <4080>;			// Guess
+					regulator-ramp-delay = <27500>;				// Guess
+					regulator-ramp-delay-scale = <300>;			// Guess
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_NONE>;
+				};
+				max77620_sd1: sd1 {
+					regulator-name = "vdd_core";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <1587500>;
+					regulator-enable-ramp-delay = <130>;			// Guess
+					regulator-disable-ramp-delay = <145800>;		// Guess
+					regulator-ramp-delay = <27500>;				// Guess
+					regulator-ramp-delay-scale = <300>;			// Guess
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,active-fps-power-up-slot = <1>;
+					maxim,active-fps-power-down-slot = <6>;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_1>;
+				};
+				max77620_sd2: sd2 {
+					regulator-name = "vdd_gen1v8";
+					regulator-min-microvolt = <1800000>;
+					regulator-max-microvolt = <1800000>;
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,fps-source = <MAX77620_FPS_SRC_0>;
+				};
+				max77620_sd3: sd3 {
+					regulator-name = "vdd_ddr3l_1v35";
+					regulator-min-microvolt = <600000>;
+					regulator-max-microvolt = <3387500>;
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,fps-source = <MAX77620_FPS_SRC_0>;
+				};
 //				max77620_ldo0: ldo0 {
 //					regulator-name = "avdd-sys";
 //					regulator-min-microvolt = <1200000>;
