@@ -94,6 +94,137 @@ static const struct regmap_irq_chip max77620_gpio_irq_chip = {
 	.type_base = MAX77620_REG_GPIO0,
 };
 
+static void max77612_dump_regs(struct max77620_gpio *mgpio) {
+	unsigned int val;
+	int ret,reg_addr,reg_ptr;
+
+	/* Excluded interrupt status register to prevent register clear */
+	u8 global_regs[] = { 0x00, 0x01, 0x02, 0x05, 0x0D, 0x0E, 0x13 };
+	u8 sd_regs[] = {
+		0x07, 0x0F, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+		0x1E, 0x1F, 0x20, 0x21, 0x22
+	};
+	u8 ldo_regs[] = {
+		0x10, 0x11, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A,
+		0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34,
+		0x35
+	};
+	u8 gpio_regs[] = {
+		0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
+		0x40
+	};
+	u8 osc_32k_regs[] = { 0x03 };
+	u8 bbc_regs[] = { 0x04 };
+	u8 onoff_regs[] = { 0x12, 0x15, 0x41, 0x42 };
+	u8 fps_regs[] = {
+		0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C,
+		0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56,
+		0x57
+	};
+	u8 cid_regs[] = { 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D };
+
+	printk("MAX77612 Registers\n");
+	printk(" [Global]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(global_regs); reg_ptr++)
+	{
+		reg_addr = global_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [Step-Down]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(sd_regs); reg_ptr++)
+	{
+		reg_addr = sd_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [LDO]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(ldo_regs); reg_ptr++)
+	{
+		reg_addr = ldo_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [GPIO]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(gpio_regs); reg_ptr++)
+	{
+		reg_addr = gpio_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [32kHz Oscillator]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(osc_32k_regs); reg_ptr++)
+	{
+		reg_addr = osc_32k_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [Backup Battery Charger]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(bbc_regs); reg_ptr++)
+	{
+		reg_addr = bbc_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [On/OFF Controller]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(onoff_regs); reg_ptr++)
+	{
+		reg_addr = onoff_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [Flexible Power Sequencer]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(fps_regs); reg_ptr++)
+	{
+		reg_addr = fps_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	printk(" [Chip Identification]\n");
+	for (reg_ptr = 0; reg_ptr < ARRAY_SIZE(cid_regs); reg_ptr++)
+	{
+		reg_addr = cid_regs[reg_ptr];
+		ret = regmap_read(mgpio->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mgpio->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mgpio->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+}
+
 // Dumps GPIO registers
 static void max77620_dump_gpio_regs(struct max77620_gpio *mgpio)
 {
@@ -304,6 +435,7 @@ static int max77620_gpio_probe(struct platform_device *pdev)
 	}
 
 	//max77620_dump_gpio_regs(mgpio);
+	//max77612_dump_regs(mgpio);
 
 	return 0;
 }
