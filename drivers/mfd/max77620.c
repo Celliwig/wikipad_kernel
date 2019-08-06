@@ -132,6 +132,10 @@ static const struct mfd_cell max77663_children[] = {
 		.name = "max77663-power",
 		.resources = power_resources,
 		.num_resources = ARRAY_SIZE(power_resources),
+	}, {
+		.name = "max77620-thermal",
+		.resources = thermal_resources,
+		.num_resources = ARRAY_SIZE(thermal_resources),
 	},
 };
 
