@@ -1331,16 +1331,16 @@
 //			};
 
 			regulators {
-//				in-ldo0-1-supply = <&max77620_sd3>;
-//				in-ldo7-8-supply = <&max77620_sd3>;
+				in-ldo0-1-supply = <&max77620_sd3>;
+				in-ldo7-8-supply = <&max77620_sd3>;
 				max77620_sd0: sd0 {
 					regulator-name = "vdd_cpu";
 					regulator-min-microvolt = <600000>;
 					regulator-max-microvolt = <3387500>;
-					regulator-enable-ramp-delay = <146>;			// Guess
-					regulator-disable-ramp-delay = <4080>;			// Guess
-					regulator-ramp-delay = <27500>;				// Guess
-					regulator-ramp-delay-scale = <300>;			// Guess
+					regulator-enable-ramp-delay = <146>;			// Old value
+					regulator-disable-ramp-delay = <4080>;			// Old value
+					regulator-ramp-delay = <27500>;				// Old value
+					regulator-ramp-delay-scale = <300>;			// Old value
 					regulator-boot-on;
 					regulator-always-on;
 					maxim,active-fps-source = <MAX77620_FPS_SRC_NONE>;
@@ -1349,10 +1349,10 @@
 					regulator-name = "vdd_core";
 					regulator-min-microvolt = <800000>;
 					regulator-max-microvolt = <1587500>;
-					regulator-enable-ramp-delay = <130>;			// Guess
-					regulator-disable-ramp-delay = <145800>;		// Guess
-					regulator-ramp-delay = <27500>;				// Guess
-					regulator-ramp-delay-scale = <300>;			// Guess
+					regulator-enable-ramp-delay = <130>;			// Old value
+					regulator-disable-ramp-delay = <145800>;		// Old value
+					regulator-ramp-delay = <27500>;				// Old value
+					regulator-ramp-delay-scale = <300>;			// Old value
 					regulator-boot-on;
 					regulator-always-on;
 					maxim,active-fps-power-up-slot = <1>;
@@ -1365,7 +1365,7 @@
 					regulator-max-microvolt = <1800000>;
 					regulator-boot-on;
 					regulator-always-on;
-					maxim,fps-source = <MAX77620_FPS_SRC_0>;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_0>;
 				};
 				max77620_sd3: sd3 {
 					regulator-name = "vdd_ddr3l_1v35";
@@ -1373,51 +1373,57 @@
 					regulator-max-microvolt = <3387500>;
 					regulator-boot-on;
 					regulator-always-on;
-					maxim,fps-source = <MAX77620_FPS_SRC_0>;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_0>;
 				};
-//				max77620_ldo0: ldo0 {
-//					regulator-name = "avdd-sys";
-//					regulator-min-microvolt = <1200000>;
-//					regulator-max-microvolt = <1200000>;
-//					regulator-enable-ramp-delay = <26>;
-//					regulator-disable-ramp-delay = <626>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					regulator-boot-on;
-//					maxim,fps-source = <FPS_SRC_NONE>;
-//				};
-//				max77620_ldo1: ldo1 {
-//					regulator-name = "vdd-pex";
-//					regulator-min-microvolt = <1075000>;
-//					regulator-max-microvolt = <1075000>;
-//					regulator-enable-ramp-delay = <22>;
-//					regulator-disable-ramp-delay = <630>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					maxim,fps-source = <FPS_SRC_NONE>;
-//				};
-//				max77620_ldo2: ldo2 {
-//					regulator-name = "vddio-sdmmc3";
-//					regulator-min-microvolt = <1800000>;
-//					regulator-max-microvolt = <3300000>;
-//					regulator-enable-ramp-delay = <62>;
-//					regulator-disable-ramp-delay = <650>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					maxim,fps-source = <FPS_SRC_NONE>;
-//				};
-//				max77620_ldo3: ldo3 {
-//					regulator-name = "vdd-cam-hv";
-//					regulator-min-microvolt = <2800000>;
-//					regulator-max-microvolt = <2800000>;
-//					regulator-enable-ramp-delay = <50>;
-//					regulator-disable-ramp-delay = <1110>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					maxim,fps-source = <FPS_SRC_NONE>;
-//				};
+				max77620_ldo0: ldo0 {
+					regulator-name = "vdd_ddr_hs";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <2350000>;
+					regulator-enable-ramp-delay = <26>;			// Old value
+					regulator-disable-ramp-delay = <626>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_1>;
+				};
+				max77620_ldo1: ldo1 {
+					regulator-name = "vdd_unknown";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <2350000>;
+					regulator-enable-ramp-delay = <22>;			// Old value
+					regulator-disable-ramp-delay = <630>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_NONE>;
+				};
+				max77620_ldo2: ldo2 {
+					regulator-name = "vdd_ddr_rx";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <3950000>;
+					regulator-enable-ramp-delay = <62>;			// Old value
+					regulator-disable-ramp-delay = <650>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_1>;
+				};
+				max77620_ldo3: ldo3 {
+					regulator-name = "vmmc";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <3950000>;
+					regulator-enable-ramp-delay = <50>;			// Old value
+					regulator-disable-ramp-delay = <1110>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					regulator-always-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_1>;
+				};
 //				max77620_ldo4: ldo4 {
-//					regulator-name = "vdd-rtc";
+//					regulator-name = "vdd_rtc";
 //					regulator-min-microvolt = <850000>;
 //					regulator-max-microvolt = <850000>;
 //					regulator-enable-ramp-delay = <22>;
@@ -1426,55 +1432,52 @@
 //					regulator-ramp-delay-scale = <200>;
 //					regulator-always-on;
 //					regulator-boot-on;
-//					maxim,fps-source = <FPS_SRC_0>;
+//					maxim,active-fps-source = <FPS_SRC_0>;
 //				};
-//				max77620_ldo5: ldo5 {
-//					regulator-name = "avdd-ts-hv";
-//					regulator-min-microvolt = <3300000>;
-//					regulator-max-microvolt = <3300000>;
-//					regulator-enable-ramp-delay = <62>;
-//					regulator-disable-ramp-delay = <640>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					maxim,fps-source = <FPS_SRC_NONE>;
-//				};
-//				max77620_ldo6: ldo6 {
-//					regulator-name = "vdd-ts";
-//					regulator-min-microvolt = <1800000>;
-//					regulator-max-microvolt = <1800000>;
-//					regulator-enable-ramp-delay = <36>;
-//					regulator-disable-ramp-delay = <674>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					regulator-always-on;
-//					regulator-boot-on;
-//					maxim,fps-source = <FPS_SRC_0>;
-//					maxim,fps-power-up-period = <7>;
-//					maxim,fps-power-down-period = <0>;
-//				};
-//				max77620_ldo7: ldo7 {
-//					regulator-name = "vdd-gen-pll-edp";
-//					regulator-min-microvolt = <1050000>;
-//					regulator-max-microvolt = <1050000>;
-//					regulator-enable-ramp-delay = <24>;
-//					regulator-disable-ramp-delay = <2768>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					regulator-always-on;
-//					regulator-boot-on;
-//					maxim,fps-source = <FPS_SRC_1>;
-//				};
-//				max77620_ldo8: ldo8 {
-//					regulator-name = "vdd-hdmi-dp";
-//					regulator-min-microvolt = <1050000>;
-//					regulator-max-microvolt = <1050000>;
-//					regulator-enable-ramp-delay = <22>;
-//					regulator-disable-ramp-delay = <1160>;
-//					regulator-ramp-delay = <100000>;
-//					regulator-ramp-delay-scale = <200>;
-//					regulator-boot-on;
-//					maxim,fps-source = <FPS_SRC_NONE>;
-//				};
+				max77620_ldo5: ldo5 {
+					regulator-name = "vdd_sensor_2v8";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <2800000>;
+					regulator-enable-ramp-delay = <62>;			// Old value
+					regulator-disable-ramp-delay = <640>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_NONE>;
+				};
+				max77620_ldo6: ldo6 {
+					regulator-name = "vddio_sdmmc";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <3950000>;
+					regulator-enable-ramp-delay = <36>;			// Old value
+					regulator-disable-ramp-delay = <674>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_NONE>;
+				};
+				max77620_ldo7: ldo7 {
+					regulator-name = "avdd_dsi_csi";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <3950000>;
+					regulator-enable-ramp-delay = <24>;			// Old value
+					regulator-disable-ramp-delay = <2768>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_NONE>;
+				};
+				max77620_ldo8: ldo8 {
+					regulator-name = "avdd_plla_p_c_s";
+					regulator-min-microvolt = <800000>;
+					regulator-max-microvolt = <3950000>;
+					regulator-enable-ramp-delay = <22>;			// Old value
+					regulator-disable-ramp-delay = <1160>;			// Old value
+					regulator-ramp-delay = <100000>;			// Old value
+					regulator-ramp-delay-scale = <200>;			// Old value
+					regulator-boot-on;
+					maxim,active-fps-source = <MAX77620_FPS_SRC_1>;
+				};
 			};
 		};
 
