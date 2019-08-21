@@ -184,6 +184,9 @@ static struct tegra_bo *tegra_bo_alloc_object(struct drm_device *drm,
 	if (err < 0)
 		goto free;
 
+	// Tentative SMMU violation fix
+	mapping_set_gfp_mask(bo->gem.filp->f_mapping, GFP_KERNEL | __GFP_DMA32);
+
 	err = drm_gem_create_mmap_offset(&bo->gem);
 	if (err < 0)
 		goto release;
