@@ -1,0 +1,21 @@
+mmc: tegra: Use proper DMA mask
+
+From: Thierry Reding <treding@nvidia.com>
+
+Hi,
+
+this puts together the two patches from this thread:
+
+    http://patchwork.ozlabs.org/patch/1146705/
+
+there hasn't been any activity there for a couple of weeks, so I thought
+I'd just throw them together and update the second patch to work on top
+of the first one.
+
+The goal here is to avoid the use of bounce buffers and fix IOVA space
+issues when an IOMMU gets involved. The first patch introduces the
+->set_dma_mask() host operation as proposed by Adrian and the second
+patch is just a rebase of Nicolin's Tegra SDHCI patch that uses the new
+host operation rather than doing it as part of ->enable_dma().
+
+Thierry
