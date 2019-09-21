@@ -1,4 +1,3 @@
-/* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (C) 2010,2011 Google, Inc.
  * Copyright (C) 2011-2012 NVIDIA CORPORATION. All Rights Reserved.
@@ -11,6 +10,16 @@
  *
  * Portions based on mach-omap2's debug-macro.S
  * Copyright (C) 1994-1999 Russell King
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
  */
 
 #include <linux/serial_reg.h>
@@ -36,6 +45,9 @@
 #define TEGRA_PMC_SCRATCH20		(TEGRA_PMC_BASE + 0xa0)
 #define TEGRA_APB_MISC_GP_HIDREV	(TEGRA_APB_MISC_BASE + 0x804)
 
+#define IO_PPSB_PHYS			0x60000000
+#define IO_PPSB_VIRT			IOMEM(0xFE200000)
+#define TEGRA_GPIO_BASE			0x6000D000
 /*
  * Must be section-aligned since a section mapping is used early on.
  * Must not overlap with regions in mach-tegra/io.c:tegra_io_desc[].
@@ -164,7 +176,7 @@
 
 		.macro	senduart, rd, rx
 		cmp	\rx, #0
-		strbne	\rd, [\rx, #UART_TX << UART_SHIFT]
+		strneb	\rd, [\rx, #UART_TX << UART_SHIFT]
 1001:
 		.endm
 
@@ -215,3 +227,15 @@ tegra_uart_config:
 	/* Debug UART virtual address */
 	.word 0
 #endif
+
+// Macro to enable bitbang serial port on MMU enable
+// (Otherwise you'd have to wait for mmu_init in start_kernel)
+	.macro  addruart_bitbang, rp, rv, tmp
+	ldr     \rp, =IO_PPSB_PHYS       @ physical
+	ldr     \rv, =IO_PPSB_VIRT        @ virtual
+	orr	\rp, \rp, #(TEGRA_GPIO_BASE & 0xFF)
+	orr	\rp, \rp, #(TEGRA_GPIO_BASE & 0xFF00)
+	orr	\rv, \rv, #(TEGRA_GPIO_BASE & 0xFF)
+	orr	\rv, \rv, #(TEGRA_GPIO_BASE & 0xFF00)
+	.endm
+
