@@ -172,6 +172,33 @@ static const struct max77620_pingroup max77620_pingroups[] = {
 	MAX77620_PINGROUP(gpio7, GPIO7, REFERENCE_OUT),
 };
 
+// Dumps PinCtrl registers
+static void max77620_dump_pctrl_regs(struct max77620_pctrl_info *mpci)
+{
+	unsigned int val;
+	int ret,reg_addr;
+
+	dev_err(mpci->dev, "[PinCtrl Registers]\n");
+	for (reg_addr = MAX77620_REG_GPIO0; reg_addr <= MAX77620_REG_AME_GPIO; reg_addr++)
+	{
+		ret = regmap_read(mpci->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mpci->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mpci->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+	for (reg_addr = MAX77620_REG_FPS_GPIO1; reg_addr <= MAX77620_REG_FPS_GPIO3; reg_addr++)
+	{
+		ret = regmap_read(mpci->rmap, reg_addr, &val);
+		if (ret < 0) {
+			dev_err(mpci->dev, "0x%02x: read failed\n", reg_addr);
+		} else {
+			dev_err(mpci->dev, "0x%02x: 0x%02x\n", reg_addr, val);
+		}
+	}
+}
+
 static int max77620_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
 {
 	struct max77620_pctrl_info *mpci = pinctrl_dev_get_drvdata(pctldev);
@@ -308,7 +335,7 @@ static int max77620_pinconf_get(struct pinctrl_dev *pctldev,
 		break;
 
 	default:
-		dev_err(dev, "Properties not supported\n");
+		dev_err(dev, "max77620_pinconf_get: Properties not supported (%d)\n", param);
 		return -ENOTSUPP;
 	}
 
@@ -521,7 +548,7 @@ static int max77620_pinconf_set(struct pinctrl_dev *pctldev,
 			break;
 
 		default:
-			dev_err(dev, "Properties not supported\n");
+			dev_err(dev, "max77620_pinconf_set: Properties not supported (%d)\n", param);
 			return -ENOTSUPP;
 		}
 	}
@@ -589,6 +616,8 @@ static int max77620_pinctrl_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Couldn't register pinctrl driver\n");
 		return PTR_ERR(mpci->pctl);
 	}
+
+	//max77620_dump_pctrl_regs(mpci);
 
 	return 0;
 }
