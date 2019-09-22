@@ -612,6 +612,7 @@ static int max77620_probe(struct i2c_client *client,
 	const struct regmap_config *rmap_config;
 	struct max77620_chip *chip;
 	const struct mfd_cell *mfd_cells;
+	const struct max77620_desc *desc;
 	int n_mfd_cells;
 	bool pm_off;
 	int ret;
@@ -620,11 +621,13 @@ static int max77620_probe(struct i2c_client *client,
 	if (!chip)
 		return -ENOMEM;
 
+	desc = of_device_get_match_data(&client->dev);
+
 	i2c_set_clientdata(client, chip);
 	chip->dev = &client->dev;
 	chip->irq_base = -1;
 	chip->chip_irq = client->irq;
-	chip->chip_id = (enum max77620_chip_id)id->driver_data;
+	chip->chip_id = desc->chip_id;
 
 	switch (chip->chip_id) {
 	case MAX77620:
