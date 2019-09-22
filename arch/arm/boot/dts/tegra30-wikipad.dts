@@ -1763,18 +1763,18 @@
 //	};
 
 // SD card
-//	sdhci@78000000 {
-//		status = "okay";
-//		cd-gpios = <&gpio TEGRA_GPIO(I, 5) GPIO_ACTIVE_HIGH>;
-//		cd-inverted;
-//		//power-gpios = <&gpio TEGRA_GPIO(R, 0) GPIO_ACTIVE_HIGH>;
-//		//wp-gpios = <&gpio TEGRA_GPIO(Q, 4) GPIO_ACTIVE_HIGH>;
-//		bus-width = <4>;
-//		keep-power-in-suspend;
-//		vmmc-supply = <&max77620_ldo6>;
-//		vqmmc-supply = <&max77620_ldo6>;
-//		post-power-on-delay-ms = <20>;
-//	};
+	sdhci@78000000 {
+		status = "okay";
+		cd-gpios = <&gpio TEGRA_GPIO(I, 5) GPIO_ACTIVE_HIGH>;
+		cd-inverted;
+		//power-gpios = <&gpio TEGRA_GPIO(R, 0) GPIO_ACTIVE_HIGH>;
+		//wp-gpios = <&gpio TEGRA_GPIO(Q, 4) GPIO_ACTIVE_HIGH>;
+		bus-width = <4>;
+		keep-power-in-suspend;
+		vmmc-supply = <&max77620_ldo6>;
+		vqmmc-supply = <&max77620_ldo6>;
+		post-power-on-delay-ms = <20>;
+	};
 
 //	sdhci@78000600 {
 //		#address-cells = <1>;
