@@ -36,6 +36,10 @@
 
 static struct max77620_chip *max77620_scratch;
 
+struct max77620_desc {
+	enum max77620_chip_id chip_id;
+};
+
 static const struct resource gpio_resources[] = {
 	DEFINE_RES_IRQ(MAX77620_IRQ_TOP_GPIO),
 };
@@ -130,6 +134,30 @@ static const struct mfd_cell max77663_children[] = {
 	},
 };
 
+static const struct mfd_cell max77612_children[] = {
+	{ .name = "max77620-pinctrl", },
+	{ .name = "max77620-clock", },
+	{ .name = "max77663-pmic", },
+	{ .name = "max77620-watchdog", },
+	{
+		.name = "max77620-gpio",
+		.resources = gpio_resources,
+		.num_resources = ARRAY_SIZE(gpio_resources),
+	}, {
+		.name = "max77620-rtc",
+		.resources = rtc_resources,
+		.num_resources = ARRAY_SIZE(rtc_resources),
+	}, {
+		.name = "max77663-power",
+		.resources = power_resources,
+		.num_resources = ARRAY_SIZE(power_resources),
+	}, {
+		.name = "max77620-thermal",
+		.resources = thermal_resources,
+		.num_resources = ARRAY_SIZE(thermal_resources),
+	},
+};
+
 static const struct regmap_range max77620_readable_ranges[] = {
 	regmap_reg_range(MAX77620_REG_CNFGGLBL1, MAX77620_REG_DVSSD4),
 };
@@ -219,6 +247,93 @@ static const struct regmap_config max77663_regmap_config = {
 	.volatile_table = &max77620_volatile_table,
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Debug routines (direct read)
+// Code pulled from old driver
+
+static inline int max77612_i2c_raw_read(struct i2c_client *client, u8 addr, void *dest, u32 bytes) {
+	int ret;
+
+	if (bytes > 1) {
+		ret = i2c_smbus_read_i2c_block_data(client, addr, bytes, dest);
+		if (ret < 0) return ret;
+	} else {
+		ret = i2c_smbus_read_byte_data(client, addr);
+		if (ret < 0) return ret;
+
+		*((u8 *)dest) = (u8)ret;
+	}
+
+	dev_dbg(&client->dev, "i2c_read: addr=0x%02x, dest=0x%02x, bytes=%u\n", addr, *((u8 *)dest), bytes);
+	return 0;
+}
+
+static void max77612_dump_regs(struct i2c_client *client, u8 *addrs, int num_addrs) {
+	int ret = 0;
+	u8 val;
+	int i;
+
+	for (i = 0; i < num_addrs; i++) {
+		printk("   0x%02x: ", addrs[i]);
+
+		ret = max77612_i2c_raw_read(client, addrs[i], &val, 1);
+		if (ret == 0) {
+			printk("0x%02x\n", val);
+		} else {
+			printk("<read fail: %d>\n", ret);
+		}
+	}
+}
+
+static void max77612_dbg_dump(struct i2c_client *client) {
+	/* Excluded interrupt status register to prevent register clear */
+	u8 global_regs[] = { 0x00, 0x01, 0x02, 0x05, 0x0D, 0x0E, 0x13 };
+	u8 sd_regs[] = {
+		0x07, 0x0F, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+		0x1E, 0x1F, 0x20, 0x21, 0x22
+	};
+	u8 ldo_regs[] = {
+		0x10, 0x11, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A,
+		0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34,
+		0x35
+	};
+	u8 gpio_regs[] = {
+		0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
+		0x40
+	};
+	u8 osc_32k_regs[] = { 0x03 };
+	u8 bbc_regs[] = { 0x04 };
+	u8 onoff_regs[] = { 0x12, 0x15, 0x41, 0x42 };
+	u8 fps_regs[] = {
+		0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C,
+		0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56,
+		0x57
+	};
+	u8 cid_regs[] = { 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D };
+
+	printk("MAX77612 Registers\n");
+	printk(" [Global]\n");
+	max77612_dump_regs(client, global_regs, ARRAY_SIZE(global_regs));
+	printk(" [Step-Down]\n");
+	max77612_dump_regs(client, sd_regs, ARRAY_SIZE(sd_regs));
+	printk(" [LDO]\n");
+	max77612_dump_regs(client, ldo_regs, ARRAY_SIZE(ldo_regs));
+	printk(" [GPIO]\n");
+	max77612_dump_regs(client, gpio_regs, ARRAY_SIZE(gpio_regs));
+	printk(" [32kHz Oscillator]\n");
+	max77612_dump_regs(client, osc_32k_regs, ARRAY_SIZE(osc_32k_regs));
+	printk(" [Backup Battery Charger]\n");
+	max77612_dump_regs(client, bbc_regs, ARRAY_SIZE(bbc_regs));
+	printk(" [On/OFF Controller]\n");
+	max77612_dump_regs(client, onoff_regs, ARRAY_SIZE(onoff_regs));
+	printk(" [Flexible Power Sequencer]\n");
+	max77612_dump_regs(client, fps_regs, ARRAY_SIZE(fps_regs));
+	printk(" [Chip Identification]\n");
+	max77612_dump_regs(client, cid_regs, ARRAY_SIZE(cid_regs));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /*
  * MAX77620 and MAX20024 has the following steps of the interrupt handling
  * for TOP interrupts:
@@ -289,6 +404,7 @@ static int max77620_get_fps_period_reg_value(struct max77620_chip *chip,
 		fps_min_period = MAX77620_FPS_PERIOD_MIN_US;
 		break;
 	case MAX77663:
+	case MAX77612:
 		fps_min_period = MAX20024_FPS_PERIOD_MIN_US;
 		break;
 	default:
@@ -326,6 +442,7 @@ static int max77620_config_fps(struct max77620_chip *chip,
 		fps_max_period = MAX77620_FPS_PERIOD_MAX_US;
 		break;
 	case MAX77663:
+	case MAX77612:
 		fps_max_period = MAX20024_FPS_PERIOD_MAX_US;
 		break;
 	default:
@@ -429,7 +546,7 @@ static int max77620_initialise_fps(struct max77620_chip *chip)
 	}
 
 skip_fps:
-	if (chip->chip_id == MAX77663)
+	if (chip->chip_id == MAX77663 || chip->chip_id == MAX77612)
 		return 0;
 
 	/* Enable wake on EN0 pin */
@@ -525,6 +642,11 @@ static int max77620_probe(struct i2c_client *client,
 		n_mfd_cells = ARRAY_SIZE(max77663_children);
 		rmap_config = &max77663_regmap_config;
 		break;
+	case MAX77612:
+		mfd_cells = max77612_children;
+		n_mfd_cells = ARRAY_SIZE(max77612_children);
+		rmap_config = &max77663_regmap_config;
+		break;
 	default:
 		dev_err(chip->dev, "ChipID is invalid %d\n", chip->chip_id);
 		return -EINVAL;
@@ -562,6 +684,8 @@ static int max77620_probe(struct i2c_client *client,
 		dev_err(chip->dev, "Failed to add MFD children: %d\n", ret);
 		return ret;
 	}
+
+	//max77612_dbg_dump(client);
 
 	pm_off = of_device_is_system_power_controller(client->dev.of_node);
 	if (pm_off && !pm_power_off) {
@@ -624,7 +748,7 @@ static int max77620_i2c_suspend(struct device *dev)
 		return ret;
 	}
 
-	if (chip->chip_id == MAX77663)
+	if (chip->chip_id == MAX77663 || chip->chip_id == MAX77612)
 		goto out;
 
 	/* Disable WK_EN0 */
@@ -662,7 +786,7 @@ static int max77620_i2c_resume(struct device *dev)
 	 * For MAX20024: No need to configure WKEN0 on resume as
 	 * it is configured on Init.
 	 */
-	if (chip->chip_id == MAX20024 || chip->chip_id == MAX77663)
+	if (chip->chip_id == MAX20024 || chip->chip_id == MAX77663 || chip->chip_id == MAX77612)
 		goto out;
 
 	/* Enable WK_EN0 */
@@ -681,11 +805,28 @@ out:
 }
 #endif
 
-static const struct i2c_device_id max77620_id[] = {
-	{"max77620", MAX77620},
-	{"max20024", MAX20024},
-	{"max77663", MAX77663},
-	{},
+static const struct max77620_desc max77620_desc = {
+	.chip_id = MAX77620,
+};
+
+static const struct max77620_desc max20024_desc = {
+	.chip_id = MAX20024,
+};
+
+static const struct max77620_desc max77663_desc = {
+	.chip_id = MAX77663,
+};
+
+static const struct max77620_desc max77612_desc = {
+	.chip_id = MAX77612,
+};
+
+static const struct of_device_id max77620_of_match[] = {
+	{ .compatible = "maxim,max77620", .data = &max77620_desc },
+	{ .compatible = "maxim,max20024", .data = &max20024_desc },
+	{ .compatible = "maxim,max77663", .data = &max77663_desc },
+	{ .compatible = "maxim,max77612", .data = &max77612_desc },
+	{ },
 };
 
 static const struct dev_pm_ops max77620_pm_ops = {
@@ -696,8 +837,8 @@ static struct i2c_driver max77620_driver = {
 	.driver = {
 		.name = "max77620",
 		.pm = &max77620_pm_ops,
+		.of_match_table = of_match_ptr(max77620_of_match),
 	},
 	.probe = max77620_probe,
-	.id_table = max77620_id,
 };
 builtin_i2c_driver(max77620_driver);

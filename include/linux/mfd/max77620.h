@@ -322,6 +322,7 @@ enum max77620_chip_id {
 	MAX77620,
 	MAX20024,
 	MAX77663,
+	MAX77612,
 };
 
 struct max77620_chip {

@@ -1198,7 +1198,7 @@
 		clock-frequency = <400000>;
 
 		pmic: max77612@3c {
-			compatible = "maxim,max77663";
+			compatible = "maxim,max77612";
 			reg = <0x3c>;
 			interrupts = <0 86 IRQ_TYPE_LEVEL_HIGH>;
 			#interrupt-cells = <2>;
@@ -1620,31 +1620,31 @@
 			regulator-always-on;
 		};
 
-//// LVDS analogue supply
-//		vdd_lvds_areg: regulator@1 {
-//			compatible = "regulator-fixed";
-//			reg = <1>;
-//			regulator-name = "vdd_lvds_areg";
-//			regulator-min-microvolt = <3300000>;
-//			regulator-max-microvolt = <3300000>;
-//			gpio = <&gpio TEGRA_GPIO(H, 2) GPIO_ACTIVE_HIGH>;
-//			regulator-boot-on;
-//			enable-active-high;
-//			vin-supply = <&vdd_3v3_main_reg>;
-//		};
+// LVDS analogue supply
+		vdd_lvds_areg: regulator@1 {
+			compatible = "regulator-fixed";
+			reg = <1>;
+			regulator-name = "vdd_lvds_areg";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio TEGRA_GPIO(H, 2) GPIO_ACTIVE_HIGH>;
+			regulator-boot-on;
+			enable-active-high;
+			vin-supply = <&vdd_3v3_main_reg>;
+		};
 
-//// LVDS digital supply
-//		vdd_lvds_dreg: regulator@2 {
-//			compatible = "regulator-fixed";
-//			reg = <2>;
-//			regulator-name = "vdd_lvds_dreg";
-//			regulator-min-microvolt = <3300000>;
-//			regulator-max-microvolt = <3300000>;
-//			gpio = <&gpio TEGRA_GPIO(W, 1) GPIO_ACTIVE_HIGH>;
-//			regulator-boot-on;
-//			enable-active-high;
-//			vin-supply = <&vdd_3v3_main_reg>;
-//		};
+// LVDS digital supply
+		vdd_lvds_dreg: regulator@2 {
+			compatible = "regulator-fixed";
+			reg = <2>;
+			regulator-name = "vdd_lvds_dreg";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio TEGRA_GPIO(W, 1) GPIO_ACTIVE_HIGH>;
+			regulator-boot-on;
+			enable-active-high;
+			vin-supply = <&vdd_3v3_main_reg>;
+		};
 
 //		chargepump_5v_reg: regulator@1 {
 //			compatible = "regulator-fixed";
@@ -1939,8 +1939,8 @@
 		height-mm = <94>;
 
 		data-mapping = "jeida-18";
-		//power-supply1 = <&vdd_lvds_areg>;					// Fudged driver to implement multiple rails
-		//power-supply2 = <&vdd_lvds_dreg>;
+		power-supply1 = <&vdd_lvds_areg>;					// Fudged driver to implement multiple rails
+		power-supply2 = <&vdd_lvds_dreg>;
 		enable-gpios = <&gpio TEGRA_GPIO(N, 6) GPIO_ACTIVE_HIGH>;		// Actually implemented on the LVDS encoder
 
 		backlight = <&lcd_backlight>;
