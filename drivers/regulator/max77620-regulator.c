@@ -96,6 +96,44 @@ struct max77620_regulator {
 	fps_src == MAX77620_FPS_SRC_1 ? "FPS_SRC_1" :	\
 	fps_src == MAX77620_FPS_SRC_2 ? "FPS_SRC_2" : "FPS_SRC_NONE")
 
+// Dumps Regulator registers
+static void max77620_dump_regulator_regs(struct max77620_regulator *pmic)
+{
+	unsigned int val;
+	int ret, i;
+
+	// Regulator register lists
+	u8 sd_regs[] = {
+		0x07, 0x0F, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+		0x1E, 0x1F, 0x20, 0x21, 0x22
+	};
+	u8 ldo_regs[] = {
+		0x10, 0x11, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A,
+		0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34,
+		0x35
+	};
+
+	dev_err(pmic->dev, "[Regulator SD Registers]\n");
+	for (i = 0; i < ARRAY_SIZE(sd_regs); i++) {
+		ret = regmap_read(pmic->rmap, sd_regs[i], &val);
+		if (ret < 0) {
+			dev_err(pmic->dev, "0x%02x: read failed\n", sd_regs[i]);
+		} else {
+			dev_err(pmic->dev, "0x%02x: 0x%02x\n", sd_regs[i], val);
+		}
+	}
+
+	dev_err(pmic->dev, "[Regulator LDO Registers]\n");
+	for (i = 0; i < ARRAY_SIZE(ldo_regs); i++) {
+		ret = regmap_read(pmic->rmap, ldo_regs[i], &val);
+		if (ret < 0) {
+			dev_err(pmic->dev, "0x%02x: read failed\n", ldo_regs[i]);
+		} else {
+			dev_err(pmic->dev, "0x%02x: 0x%02x\n", ldo_regs[i], val);
+		}
+	}
+}
+
 static int max77620_regulator_get_fps_src(struct max77620_regulator *pmic,
 					  int id)
 {
@@ -396,7 +434,11 @@ static int max77620_init_pmic(struct max77620_regulator *pmic, int id)
 		return ret;
 
 	pmic->current_power_mode[id] = ret;
-	pmic->enable_power_mode[id] = MAX77620_POWER_MODE_NORMAL;
+	if (id == MAX77620_REGULATOR_ID_SD0) {					// Hack to ensure SD0 is controlled by EN2 line
+		pmic->enable_power_mode[id] = MAX77620_POWER_MODE_DISABLE;
+	} else {
+		pmic->enable_power_mode[id] = MAX77620_POWER_MODE_NORMAL;
+	}
 
 	if (rpdata->active_fps_src == MAX77620_FPS_SRC_DEF) {
 		ret = max77620_regulator_get_fps_src(pmic, id);
@@ -776,6 +818,27 @@ static struct max77620_regulator_info max77663_regs_info[MAX77620_NUM_REGS] = {
 	RAIL_LDO(LDO8, ldo8, "in-ldo7-8", N, 800000, 3950000, 50000),
 };
 
+// Copied from Max77663
+// SD1 - Changed volt mask to match old driver
+// SD4 - Old driver/boardfiles miss out this (Max77612???)
+static struct max77620_regulator_info max77612_regs_info[MAX77620_NUM_REGS] = {
+	RAIL_SD(SD0, sd0, "in-sd0", SD0, 600000, 3387500, 12500, 0xFF, NONE),
+	RAIL_SD(SD1, sd1, "in-sd1", SD1, 800000, 1587500, 12500, 0x3F, NONE),
+	RAIL_SD(SD2, sd2, "in-sd2", SDX, 600000, 3787500, 12500, 0xFF, NONE),
+	RAIL_SD(SD3, sd3, "in-sd3", SDX, 600000, 3787500, 12500, 0xFF, NONE),
+	//RAIL_SD(SD4, sd4, "in-sd4", SDX, 600000, 3787500, 12500, 0xFF, NONE),
+
+	RAIL_LDO(LDO0, ldo0, "in-ldo0-1", N, 800000, 2375000, 25000),
+	RAIL_LDO(LDO1, ldo1, "in-ldo0-1", N, 800000, 2375000, 25000),
+	RAIL_LDO(LDO2, ldo2, "in-ldo2",   P, 800000, 3950000, 50000),
+	RAIL_LDO(LDO3, ldo3, "in-ldo3-5", P, 800000, 3950000, 50000),
+	RAIL_LDO(LDO4, ldo4, "in-ldo4-6", P, 800000, 1587500, 12500),
+	RAIL_LDO(LDO5, ldo5, "in-ldo3-5", P, 800000, 3950000, 50000),
+	RAIL_LDO(LDO6, ldo6, "in-ldo4-6", P, 800000, 3950000, 50000),
+	RAIL_LDO(LDO7, ldo7, "in-ldo7-8", N, 800000, 3950000, 50000),
+	RAIL_LDO(LDO8, ldo8, "in-ldo7-8", N, 800000, 3950000, 50000),
+};
+
 static int max77620_regulator_probe(struct platform_device *pdev)
 {
 	struct max77620_chip *max77620_chip = dev_get_drvdata(pdev->dev.parent);
@@ -806,6 +869,9 @@ static int max77620_regulator_probe(struct platform_device *pdev)
 	case MAX77663:
 		rinfo = max77663_regs_info;
 		break;
+	case MAX77612:
+		rinfo = max77612_regs_info;
+		break;
 	default:
 		return -EINVAL;
 	}
@@ -818,7 +884,8 @@ static int max77620_regulator_probe(struct platform_device *pdev)
 		struct regulator_dev *rdev;
 		struct regulator_desc *rdesc;
 
-		if ((max77620_chip->chip_id == MAX77620) &&
+		// Ignore SD4 for Max77620 / Max77663 (Max77612)
+		if (((max77620_chip->chip_id == MAX77620) || (max77620_chip->chip_id == MAX77612)) &&
 		    (id == MAX77620_REGULATOR_ID_SD4))
 			continue;
 
@@ -846,6 +913,8 @@ static int max77620_regulator_probe(struct platform_device *pdev)
 			return ret;
 		}
 	}
+
+	//max77620_dump_regulator_regs(pmic);
 
 	return 0;
 }
@@ -902,6 +971,7 @@ static const struct platform_device_id max77620_regulator_devtype[] = {
 	{ .name = "max77620-pmic", },
 	{ .name = "max20024-pmic", },
 	{ .name = "max77663-pmic", },
+	{ .name = "max77612-pmic", },
 	{},
 };
 MODULE_DEVICE_TABLE(platform, max77620_regulator_devtype);

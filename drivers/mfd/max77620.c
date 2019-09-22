@@ -137,7 +137,7 @@ static const struct mfd_cell max77663_children[] = {
 static const struct mfd_cell max77612_children[] = {
 	{ .name = "max77620-pinctrl", },
 	{ .name = "max77620-clock", },
-	{ .name = "max77663-pmic", },
+	{ .name = "max77612-pmic", },
 	{ .name = "max77620-watchdog", },
 	{
 		.name = "max77620-gpio",
